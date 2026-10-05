@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# ⚡ Nexus AI Studio — Evrensel Akıllı Kurulum Betiği (Universal Installer v2.3)
+# ⚡ Nexus AI Studio — Evrensel Akıllı Kurulum Betiği (Universal Installer v3.2.2)
 # CachyOS, Arch Linux, Manjaro, EndeavourOS, Ubuntu, Debian, Fedora, CentOS, Alpine, macOS & WSL2
 # ==============================================================================
 
@@ -255,6 +255,27 @@ else
     $SUDO chmod 666 /var/run/docker.sock 2>/dev/null || true
     $SUDO $DOCKER_COMPOSE -f "$COMPOSE_FILE" up -d >/dev/null 2>&1 || $SUDO $DOCKER_COMPOSE -f "$COMPOSE_FILE" up -d
 fi
+# Sağlık kontrolü: nginx gateway gerçekten ayağa kalktı mı? (v3.2.2)
+echo -e "${YELLOW}  -> 🛰 Servis sağlığı doğrulanıyor...${NC}"
+HEALTH_OK=false
+UI_PORT="${NEXUS_UI_PORT:-3050}"
+for i in $(seq 1 20); do
+    if curl -sf -m 3 "http://127.0.0.1:${UI_PORT}/health" >/dev/null 2>&1; then
+        HEALTH_OK=true
+        break
+    fi
+    sleep 1.5
+done
+if [ "$HEALTH_OK" = true ]; then
+    echo -e "${GREEN}  ✓ Nexus AI Studio ve tüm servisler sağlıklı şekilde aktif!${NC}"
+else
+    echo -e "${RED}  ✗ Sağlık kontrolü başarısız (30 sn). Konteyner logları:${NC}"
+    $DOCKER_COMPOSE -f "$COMPOSE_FILE" logs --tail 20 2>/dev/null || true
+    echo -e "${YELLOW}  💡 Port ${UI_PORT} veya 8500 başka bir uygulama tarafından kullanılıyor olabilir.${NC}"
+    echo -e "${YELLOW}     🔧 Çözüm: NEXUS_UI_PORT=4050 NEXUS_API_PORT=8501 $0${NC}"
+    exit 1
+fi
+
 echo -e "${GREEN}  ✓ Nexus AI Studio ve tüm servisler başarıyla aktif edildi!${NC}"
 
 # IP Tespiti
@@ -266,8 +287,8 @@ if [ -z "$LOCAL_IP" ]; then
     LOCAL_IP="localhost"
 fi
 
-STUDIO_URL="http://${LOCAL_IP}:3050"
-ADMIN_URL="http://${LOCAL_IP}:3050/admin.html"
+STUDIO_URL="http://${LOCAL_IP}:${NEXUS_UI_PORT:-3050}"
+ADMIN_URL="http://${LOCAL_IP}:${NEXUS_UI_PORT:-3050}/admin.html"
 
 # Panoya (Clipboard) Kopyalama
 COPIED=false
@@ -288,7 +309,7 @@ echo -e "${GREEN}===============================================================
 
 echo -e "📱 ${CYAN}${BOLD}Nexus AI Studio:${NC}            ${BOLD}${STUDIO_URL}${NC}"
 echo -e "🎛️ ${CYAN}${BOLD}Nexus Kontrol Paneli (Specs):${NC} ${BOLD}${ADMIN_URL}${NC}"
-echo -e "⚡ ${CYAN}${BOLD}FastAPI Backend Portu:${NC}        http://${LOCAL_IP}:8500"
+echo -e "⚡ ${CYAN}${BOLD}FastAPI Backend Portu:${NC}        http://${LOCAL_IP}:${NEXUS_API_PORT:-8500}"
 echo -e "🧠 ${CYAN}${BOLD}Ollama Yerel Çıkarım Motoru:${NC}  http://127.0.0.1:11434"
 echo -e "🌐 ${CYAN}${BOLD}Canlı Dış Tünel:${NC}               Kontrol Paneli > Canlı Yayınlar sekmesinden açabilirsiniz."
 

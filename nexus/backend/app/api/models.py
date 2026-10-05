@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Header
+import asyncio
 import httpx
 from app.core.config import settings
 from app.api.settings_api import get_server_key, load_server_settings
@@ -30,18 +31,26 @@ async def list_models(
                     "http://localhost:11434",
                     "http://localhost:11435"
                 ]
-                for url in candidates:
-                    if not url:
-                        continue
+                candidates = [u for u in candidates if u]
+
+                # Paralel prob: Ollama yokken sırayla denemek 9x6sn = UI donması demekti.
+                # Şimdi hepsi aynı anda 2 sn'lik kısa timeout'la denenir, ilk dolu kazanır.
+                short = httpx.Timeout(2.0, connect=1.5)
+
+                async def _probe(u: str):
                     try:
-                        res = await client.get(f"{url}/api/tags")
+                        res = await client.get(f"{u}/api/tags", timeout=short)
                         if res.status_code == 200:
                             data = res.json()
-                            models = [{"id": m["name"], "name": m["name"], "provider": "ollama"} for m in data.get("models", [])]
-                            if models:
-                                break
+                            return [{"id": m["name"], "name": m["name"], "provider": "ollama"} for m in data.get("models", [])]
                     except Exception:
-                        continue
+                        return None
+                    return None
+
+                for result in await asyncio.gather(*(_probe(u) for u in candidates)):
+                    if result:
+                        models = result
+                        break
             
             elif provider == "gemini":
                 if api_key:

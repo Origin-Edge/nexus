@@ -12,3 +12,10 @@ nexus/data/deployments/
 backend/data/sessions/
 backend/data/deployments/
 *.tmp
+# Runtime data (gerçek anahtarlar/ikili dosyalar repoya GİRMEZ)
+nexus/data/apikeys.json
+nexus/backend/data/apikeys.json
+nexus/data/cloudflared
+nexus/backend/data/cloudflared
+nexus/data/deployments_meta.json
+nexus/data/store/installed_*.json

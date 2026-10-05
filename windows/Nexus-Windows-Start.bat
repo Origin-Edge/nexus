@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title Nexus AI Studio - Windows Launcher v3.2.1
+title Nexus AI Studio - Windows Launcher v3.2.2
 
 :: Detect root directory
 set "SCRIPT_DIR=%~dp0"
@@ -14,7 +14,7 @@ if exist "%SCRIPT_DIR%..\nexus\backend\requirements.txt" (
 set "ROOT_DIR=%CD%"
 
 echo ==============================================================================
-echo ⚡ Starting Nexus AI Studio (Windows Native Edition v3.2.1)...
+echo ⚡ Starting Nexus AI Studio (Windows Native Edition v3.2.2)...
 echo ==============================================================================
 echo.
 

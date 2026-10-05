@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import os
@@ -24,10 +24,14 @@ class TunnelManager:
         self.is_running = False
         self.lock = threading.Lock()
 
-    def start_tunnel(self, port: int = 3050):
+    def start_tunnel(self, port: int = None):
         with self.lock:
             if self.is_running and self.public_url:
                 return self.public_url
+
+            # Tünel hedefi: konteynerde host.docker.internal:3050 (frontend gateway),
+            # native modda localhost:3050. Compose NEXUS_TUNNEL_TARGET ile verir.
+            target = os.environ.get("NEXUS_TUNNEL_TARGET", "http://127.0.0.1:3050")
 
             # Check if cloudflared exists
             has_cf = False
@@ -43,7 +47,7 @@ class TunnelManager:
 
             try:
                 self.process = subprocess.Popen(
-                    [cmd_bin, "tunnel", "--url", f"http://127.0.0.1:{port}", "--no-autoupdate"],
+                    [cmd_bin, "tunnel", "--url", target, "--no-autoupdate"],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,
@@ -91,8 +95,8 @@ class TunnelManager:
 
 tunnel_manager = TunnelManager()
 
-# Automatically attempt tunnel startup in background for port 3050 (Full Nexus Studio & Control Panel)
-threading.Thread(target=lambda: tunnel_manager.start_tunnel(3050), daemon=True).start()
+# Not: Tünel OTOMATİK başlatılmaz — yalnızca kullanıcı kontrol panelinden
+# 'Canlı Yayın' anahtarını açınca start_tunnel() çağrılır (yerel gizlilik).
 
 def load_metadata() -> Dict[str, Any]:
     if os.path.exists(METADATA_FILE):
@@ -112,7 +116,13 @@ class PublishRequest(BaseModel):
     title: Optional[str] = "Nexus AI Generated App"
 
 @router.post("/api/deploy/publish")
-async def publish_deployment(req: PublishRequest):
+async def publish_deployment(req: PublishRequest, request: Request):
+    # Yerel adresi isteğin kendi Host başlığından türet (sabit LAN IP'si YOK)
+    req_host = request.headers.get("host", "localhost:3050").split(",")[0].strip()
+    if ":" in req_host and not req_host.startswith("["):
+        req_host, _, req_port = req_host.rpartition(":")
+    else:
+        req_port = "80"
     html_content = req.html.strip()
     if not html_content:
         raise HTTPException(status_code=400, detail="HTML content is empty")
@@ -126,8 +136,10 @@ async def publish_deployment(req: PublishRequest):
     meta = load_metadata()
     pub_url = tunnel_manager.public_url
     if not pub_url:
-        pub_url = tunnel_manager.start_tunnel(8500)
+        pub_url = tunnel_manager.start_tunnel()
 
+    # Yerel adres: hangi Host/Port üzerinden geldiysek o (sabit IP yok)
+    local_base = f"http://{req_host}:{req_port}" if req_port not in (80,) else f"http://{req_host}"
     meta[deploy_id] = {
         "id": deploy_id,
         "title": req.title,
@@ -142,8 +154,8 @@ async def publish_deployment(req: PublishRequest):
         "id": deploy_id,
         "title": req.title,
         "local_path": f"/share/{deploy_id}",
-        "local_url": f"http://192.168.0.188:3050/share/{deploy_id}",
-        "public_url": f"{pub_url}/share/{deploy_id}" if pub_url else f"http://192.168.0.188:3050/share/{deploy_id}",
+        "local_url": f"{local_base}/share/{deploy_id}",
+        "public_url": f"{pub_url}/share/{deploy_id}" if pub_url else f"{local_base}/share/{deploy_id}",
         "tunnel_active": bool(pub_url),
         "tunnel_base": pub_url or ""
     }
@@ -207,7 +219,7 @@ async def get_tunnel_status():
 @router.post("/api/deploy/studio-tunnel/restart")
 async def restart_tunnel():
     tunnel_manager.stop_tunnel()
-    pub_url = tunnel_manager.start_tunnel(3050)
+    pub_url = tunnel_manager.start_tunnel()
     return {
         "status": "ok",
         "active": bool(pub_url),
@@ -229,7 +241,7 @@ async def toggle_tunnel():
         }
     else:
         tunnel_manager.stop_tunnel()
-        pub_url = tunnel_manager.start_tunnel(3050)
+        pub_url = tunnel_manager.start_tunnel()
         return {
             "status": "ok",
             "active": bool(pub_url),
@@ -240,7 +252,7 @@ async def toggle_tunnel():
 
 @router.post("/api/deploy/studio-tunnel/start")
 async def start_tunnel_route():
-    pub_url = tunnel_manager.start_tunnel(3050)
+    pub_url = tunnel_manager.start_tunnel()
     return {
         "status": "ok",
         "active": bool(pub_url),

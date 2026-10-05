@@ -4,7 +4,7 @@ from typing import List, Optional
 
 class Settings(BaseModel):
     PROJECT_NAME: str = "Nexus AI Studio"
-    VERSION: str = "3.2.1"
+    VERSION: str = "3.2.2"
     API_PREFIX: str = "/api"
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))

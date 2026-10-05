@@ -584,7 +584,7 @@ async function fetchDeployments() {
             if (cpLink) cpLink.style.display = 'none';
 
             if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=http://192.168.0.188:3050`;
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('http://' + window.location.host)}`;
                 qrImg.style.opacity = '0.35';
                 qrImg.style.filter = 'grayscale(100%)';
             }

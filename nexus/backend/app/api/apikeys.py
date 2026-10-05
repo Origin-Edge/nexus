@@ -12,7 +12,9 @@ DATA_DIR = os.path.join(os.getcwd(), "data")
 APIKEYS_FILE = os.path.join(DATA_DIR, "apikeys.json")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-DEFAULT_MASTER_KEY = "nx-live-unlimited-nexus-master-key"
+# Varsayılan master key ortam değişkeniyle değiştirilebilir:
+#   Environment=NEXUS_MASTER_KEY=nx-live-kendi-anahtarin
+DEFAULT_MASTER_KEY = os.environ.get("NEXUS_MASTER_KEY") or "nx-live-unlimited-nexus-master-key"
 
 def load_apikeys() -> Dict[str, Any]:
     if os.path.exists(APIKEYS_FILE):

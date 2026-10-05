@@ -5,14 +5,16 @@ services:
     container_name: nexus-backend
     restart: unless-stopped
     ports:
-      - "8500:8500"
+      - "${NEXUS_API_PORT:-8500}:8500"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
       - HOST=0.0.0.0
       - PORT=8500
       - DEFAULT_PROVIDER=ollama
-      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - NEXUS_TUNNEL_TARGET=http://frontend:3050
+      - NEXUS_MASTER_KEY=${NEXUS_MASTER_KEY:-}
     volumes:
       - ../nexus/backend:/app
       - ../:/repo
@@ -24,7 +26,7 @@ services:
     container_name: nexus-frontend
     restart: unless-stopped
     ports:
-      - "3050:3050"
+      - "${NEXUS_UI_PORT:-3050}:3050"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
