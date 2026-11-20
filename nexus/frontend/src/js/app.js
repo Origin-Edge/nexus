@@ -1,38 +1,13 @@
 // Nexus AI Studio — Main Controller Engine
+const KOPYA_SIMGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+// NOTE: activeProvider, activeModel, getProviderHeaders(), fetchModelsForActiveProvider()
+// are defined in providers.js (loaded before this file). Do NOT redeclare them here.
 let currentChatId = null;
 let chatsHistory = JSON.parse(localStorage.getItem("nexus_chats") || "[]");
 let currentMessages = [];
 let activeAbortController = null;
 let currentPersonaPrompt = "";
-let activeProvider = "ollama";
-let activeModel = "qwen2.5-coder:7b";
-let currentLang = "tr";
-
-function getProviderHeaders() {
-    return {
-        "X-Provider": "ollama",
-        "X-Session-ID": getSessionId()
-    };
-}
-
-function fetchModelsForActiveProvider() {
-    activeModel = "qwen2.5-coder:7b";
-    activeProvider = "ollama";
-}
-
-function applyTranslations() {}
-function setLanguage(lang) {
-    currentLang = lang;
-}
-function t(key) {
-    const tr = {
-        thinking: "Düşünce Adımları",
-        live_preview: "Canlı Önizleme",
-        copy_code: "Kodu Kopyala",
-        copied: "Kopyalandı!"
-    };
-    return tr[key] || key;
-}
+// currentLang, setLanguage(), applyTranslations(), t() are defined in i18n.js
 
 document.addEventListener("DOMContentLoaded", () => {
     initChatInterface();
@@ -125,19 +100,15 @@ function renderChatsList() {
     if (!list) return;
 
     list.innerHTML = "";
-    chatsHistory.forEach(chat => {
+    const aranan = ((document.getElementById("searchChatInput") || {}).value || "").trim().toLocaleLowerCase("tr");
+    chatsHistory.filter(c => !aranan || (c.title || "").toLocaleLowerCase("tr").includes(aranan)).forEach(chat => {
         const item = document.createElement("div");
         const isActive = chat.id === currentChatId;
-        item.className = `group flex items-center justify-between p-2.5 rounded-xl cursor-pointer text-xs transition-all ${
-            isActive ? "bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 font-bold" : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
-        }`;
+        item.className = `nx-sohbet${isActive ? " aktif" : ""}`;
         item.innerHTML = `
-            <div class="flex items-center gap-2 truncate" onclick="loadChat('${chat.id}')">
-                <i class="fa-regular fa-message text-[10px]"></i>
-                <span class="truncate">${chat.title || "Yeni Sohbet"}</span>
-            </div>
-            <button onclick="deleteChat('${chat.id}', event)" class="opacity-0 group-hover:opacity-100 hover:text-rose-400 p-1 text-slate-500 transition-opacity">
-                <i class="fa-solid fa-trash-can text-[10px]"></i>
+            <span class="truncate flex-1" onclick="loadChat('${escapeHtml(String(chat.id))}'); if (typeof yanKapat === 'function') yanKapat();">${escapeHtml(chat.title || "Yeni sohbet")}</span>
+            <button onclick="deleteChat('${escapeHtml(String(chat.id))}', event)" class="sil" title="Sohbeti sil" aria-label="Sohbeti sil">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
             </button>
         `;
         list.appendChild(item);
@@ -189,20 +160,16 @@ function renderMessages() {
     currentMessages.forEach((msg, idx) => {
         const isUser = msg.role === "user";
         const div = document.createElement("div");
-        div.className = `flex gap-3.5 ${isUser ? "justify-end" : "justify-start"} animate-fade-in`;
+        div.className = `flex gap-3 ${isUser ? "justify-end" : "justify-start"} animate-fade-in`;
 
         if (isUser) {
             div.innerHTML = `
-                <div class="max-w-2xl bg-indigo-600 text-white p-3.5 rounded-2xl rounded-tr-sm text-sm shadow-md font-medium leading-relaxed">
-                    ${escapeHtml(msg.content)}
-                </div>
+                <div class="nx-mesaj-kullanici">${escapeHtml(msg.content)}</div>
             `;
         } else {
             div.innerHTML = `
-                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shrink-0 shadow-lg text-white text-xs font-black">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
-                <div class="max-w-3xl glass-panel p-4 rounded-2xl rounded-tl-sm text-sm text-slate-100 shadow-xl space-y-2 markdown-body overflow-x-auto w-full">
+                <div class="nx-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18V6l12 12V6"/></svg></div>
+                <div class="nx-mesaj-yz markdown-body">
                     ${renderMarkdown(msg.content)}
                 </div>
             `;
@@ -240,12 +207,10 @@ async function sendMessage() {
     // Create assistant message container
     const container = document.getElementById("messagesContainer");
     const aiDiv = document.createElement("div");
-    aiDiv.className = "flex gap-3.5 justify-start animate-fade-in";
+    aiDiv.className = "flex gap-3 justify-start animate-fade-in";
     aiDiv.innerHTML = `
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shrink-0 shadow-lg text-white text-xs font-black">
-            <i class="fa-solid fa-bolt"></i>
-        </div>
-        <div class="max-w-3xl glass-panel p-4 rounded-2xl rounded-tl-sm text-sm text-slate-100 shadow-xl space-y-2 markdown-body overflow-x-auto w-full" id="streamingTarget">
+        <div class="nx-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18V6l12 12V6"/></svg></div>
+        <div class="nx-mesaj-yz markdown-body" id="streamingTarget">
             <span class="streaming-cursor"></span>
         </div>
     `;
@@ -269,7 +234,8 @@ async function sendMessage() {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                ...getProviderHeaders()
+                ...getProviderHeaders(),
+                "X-Session-ID": getSessionId()
             },
             body: JSON.stringify({
                 model: activeModel,
@@ -322,9 +288,9 @@ async function sendMessage() {
 
     } catch (e) {
         if (e.name === "AbortError") {
-            target.innerHTML = renderMarkdown(fullResponse) + '<span class="text-amber-400 text-xs italic block mt-2"> (Durduruldu)</span>';
+            target.innerHTML = renderMarkdown(fullResponse) + '<span class="nx-not">Durduruldu.</span>';
         } else {
-            target.innerHTML = `<span class="text-rose-400">❌ İstek Başarısız: ${e.message}</span>`;
+            target.innerHTML = `<span class="nx-hata">İstek başarısız: ${escapeHtml(e.message)}</span>`;
         }
     } finally {
         toggleStopButton(false);
@@ -358,11 +324,9 @@ function renderMarkdown(raw) {
     // Parse <think> reasoning tags
     let processed = raw;
     processed = processed.replace(/<think>([\s\S]*?)<\/think>/gi, (match, thinkContent) => {
-        return `<details class="thinking-box" open>
-            <summary class="font-bold cursor-pointer text-indigo-300 flex items-center gap-1.5 select-none mb-1">
-                <i class="fa-solid fa-brain text-xs"></i> <span>${t("thinking")}</span>
-            </summary>
-            <div class="mt-1 text-slate-300 leading-relaxed font-mono text-xs whitespace-pre-wrap">${escapeHtml(thinkContent.trim())}</div>
+        return `<details class="thinking-box">
+            <summary><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg><span>${t("thinking")}</span></summary>
+            <div class="icerik">${escapeHtml(thinkContent.trim())}</div>
         </details>`;
     });
 
@@ -379,32 +343,31 @@ function highlightCodeBlocks() {
         // Add Live Preview, Deploy & Copy header if not already added
         const pre = block.parentElement;
         if (pre && !pre.querySelector(".code-header")) {
-            const lang = block.className.replace("hljs language-", "").replace("language-", "").trim();
+            const lang = ((block.className.match(/language-([\w+#-]+)/) || [])[1] || "").trim();
             const code = block.textContent;
 
             const header = document.createElement("div");
-            header.className = "code-header flex items-center justify-between px-3 py-1.5 bg-slate-900/90 border-b border-white/10 text-slate-400 text-xs font-mono rounded-t-xl select-none";
-            
+            header.className = "code-header";
+
             const isWeb = ["html", "javascript", "js", "svg", "css"].includes(lang.toLowerCase()) || code.includes("<!DOCTYPE") || code.includes("<html") || code.includes("<body") || code.includes("<div") || code.includes("<script");
-            
+
             header.innerHTML = `
-                <span class="font-bold uppercase text-[11px] text-indigo-400">${lang || "CODE"}</span>
-                <div class="flex items-center gap-2">
+                <span class="dil">${escapeHtml(lang || "kod")}</span>
+                <div class="islemler">
                     ${isWeb ? `
-                        <button type="button" class="btn-publish-direct px-2.5 py-1 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm" title="Tek tıkla internete ve dünyaya aç">
-                            <i class="fa-solid fa-globe text-[10px]"></i> <span>Dünyaya Aç</span>
+                        <button type="button" class="btn-publish-direct" title="Bağlantıyla paylaş">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Yayınla</span>
                         </button>
-                        <button type="button" class="btn-open-sandbox px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/40 text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
-                            <i class="fa-solid fa-play text-[10px]"></i> <span>${t("live_preview")}</span>
+                        <button type="button" class="btn-open-sandbox ana">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span>${t("live_preview")}</span>
                         </button>
                     ` : ""}
-                    <button type="button" class="btn-copy-code hover:text-white transition-colors text-[11px] flex items-center gap-1.5 px-2 py-1 cursor-pointer">
-                        <i class="fa-regular fa-copy"></i> <span>${t("copy_code")}</span>
+                    <button type="button" class="btn-copy-code">
+                        ${KOPYA_SIMGE}<span>${t("copy_code")}</span>
                     </button>
                 </div>
             `;
             pre.insertBefore(header, block);
-            pre.className = "rounded-xl border border-white/10 overflow-hidden bg-slate-950/80 my-3";
 
             // Bind listeners directly
             const publishBtn = header.querySelector(".btn-publish-direct");
@@ -437,9 +400,9 @@ function copyCodeFromBlock(btn) {
     const code = pre ? pre.querySelector("code") : null;
     if (code) {
         navigator.clipboard.writeText(code.textContent);
-        btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> <span>${t("copied")}</span>`;
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>${t("copied")}</span>`;
         setTimeout(() => {
-            btn.innerHTML = `<i class="fa-regular fa-copy"></i> <span>${t("copy_code")}</span>`;
+            btn.innerHTML = `${KOPYA_SIMGE}<span>${t("copy_code")}</span>`;
         }, 2000);
     }
 }
@@ -453,16 +416,17 @@ async function loadPresets() {
 
         container.innerHTML = "";
         data.presets.forEach(p => {
-            const card = document.createElement("div");
-            card.className = "shrink-0 w-64 glass-panel p-3.5 rounded-2xl cursor-pointer hover:border-indigo-500/50 hover:scale-[1.02] transition-all space-y-1.5";
+            const card = document.createElement("button");
+            card.className = "nx-sablon";
+            card.type = "button";
             card.onclick = () => selectPreset(p);
             card.innerHTML = `
-                <div class="flex items-center justify-between">
-                    <i class="${p.icon} text-indigo-400 text-sm"></i>
-                    <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30">${p.badge}</span>
+                <div class="flex items-center justify-between gap-2">
+                    <span class="simge"><i class="${escapeHtml(p.icon || "fa-solid fa-wand-magic-sparkles")}"></i></span>
+                    ${p.badge ? `<span class="nx-rozet">${escapeHtml(p.badge)}</span>` : ""}
                 </div>
-                <div class="font-bold text-xs text-white">${currentLang === "tr" ? p.title_tr : p.title}</div>
-                <div class="text-[11px] text-slate-400 line-clamp-2">${currentLang === "tr" ? p.desc_tr : p.desc_en}</div>
+                <div class="baslik">${escapeHtml(currentLang === "tr" ? p.title_tr : p.title)}</div>
+                <div class="aciklama">${escapeHtml(currentLang === "tr" ? p.desc_tr : p.desc_en)}</div>
             `;
             container.appendChild(card);
         });

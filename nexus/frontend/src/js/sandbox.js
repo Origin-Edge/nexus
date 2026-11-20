@@ -25,10 +25,10 @@ function setDeviceMode(mode) {
     currentDeviceMode = mode;
     const iframeWrapper = document.getElementById("sandboxFrameWrapper");
     const btns = document.querySelectorAll(".device-btn");
-    btns.forEach(b => b.classList.remove("active-device", "bg-indigo-600", "text-white"));
+    btns.forEach(b => b.classList.remove("active-device"));
 
     const activeBtn = document.getElementById(`deviceBtn-${mode}`);
-    if (activeBtn) activeBtn.classList.add("active-device", "bg-indigo-600", "text-white");
+    if (activeBtn) activeBtn.classList.add("active-device");
 
     if (!iframeWrapper) return;
     if (mode === "desktop") {
@@ -118,7 +118,7 @@ async function publishDirectCode(code) {
     const btn = document.getElementById("publishArtifactBtn");
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Yayınlanıyor...</span>';
+        btn.innerHTML = '<span>Yayınlanıyor…</span>';
     }
 
     try {
@@ -146,15 +146,15 @@ async function publishDirectCode(code) {
         const data = await res.json();
         lastPublishData = data;
         openPublishModal(data);
-        showToast("🚀 Projeniz başarıyla dünyaya yayınlandı!");
+        showToast("Sayfan yayınlandı.");
 
     } catch (e) {
         console.error("Publish error:", e);
-        alert(`Yayınlama sırasında hata oluştu: ${e.message}`);
+        showToast(`Yayınlanamadı: ${e.message}`);
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-globe text-xs"></i> <span>Dünyaya Aç / Paylaş</span>';
+            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Yayınla</span>';
         }
     }
 }
@@ -166,8 +166,10 @@ function openPublishModal(data) {
         modal = document.getElementById("publishSuccessModal");
     }
 
-    const pubUrl = data.public_url || data.local_url;
-    const localUrl = data.local_url || `http://${window.location.hostname}:3050${data.local_path}`;
+    // Sunucu yerel ağ adresini bulamadıysa (Docker bridge) tarayıcının kullandığı adres esas alınır.
+    const tam = (u) => (u && u.startsWith("/")) ? location.origin + u : u;
+    const localUrl = tam(data.local_url) || location.origin + (data.local_path || "");
+    const pubUrl = tam(data.public_url) || localUrl;
 
     document.getElementById("publishModalTitle").textContent = data.title || "Nexus Web Uygulaması";
     document.getElementById("publishPublicUrlInput").value = pubUrl;
@@ -177,11 +179,11 @@ function openPublishModal(data) {
     const statusText = document.getElementById("publishStatusBadge");
     if (statusText) {
         if (data.tunnel_active) {
-            statusText.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-full text-xs font-bold flex items-center gap-1.5";
-            statusText.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloudflare Canlı Tünel Aktif';
+            statusText.className = "nx-rozet";
+            statusText.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> İnternetten erişilebilir';
         } else {
-            statusText.className = "px-3 py-1 bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 rounded-full text-xs font-bold flex items-center gap-1.5";
-            statusText.innerHTML = '<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> Yerel Ağ & Web Aktif';
+            statusText.className = "nx-rozet";
+            statusText.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Yalnızca yerel ağda. İnternete açmak için Kontrol paneli › Tünel';
         }
     }
 
@@ -221,84 +223,46 @@ function copyPublishUrl(type) {
 function createPublishModalElement() {
     const div = document.createElement("div");
     div.id = "publishSuccessModal";
-    div.className = "fixed inset-0 bg-slate-950/85 backdrop-blur-2xl hidden z-50 items-center justify-center p-4";
+    div.className = "fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 items-center justify-center p-4";
+    div.setAttribute("role", "dialog");
+    div.setAttribute("aria-modal", "true");
     div.innerHTML = `
-        <div class="w-full max-w-xl bg-[#0c121e] border border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 animate-fade-in">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between border-b border-white/10 pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 text-base font-black shadow-lg shadow-emerald-500/25">
-                        <i class="fa-solid fa-globe"></i>
-                    </div>
-                    <div>
-                        <div class="font-black text-sm text-white flex items-center gap-2">
-                            <span>🚀 Projeniz Dünyaya Açıldı!</span>
-                        </div>
-                        <div id="publishModalTitle" class="text-xs text-slate-400 font-mono">Nexus Web App</div>
-                    </div>
+        <div class="nx-kutu w-full max-w-xl p-5 space-y-5 animate-fade-in">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <h2 class="text-base font-semibold">Sayfan yayında</h2>
+                    <div id="publishModalTitle" class="text-sm nx-ikinci truncate">Nexus web uygulaması</div>
                 </div>
-                <button onclick="closePublishModal()" class="p-2 text-slate-400 hover:text-white rounded-xl text-sm transition-colors">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="closePublishModal()" class="nx-btn nx-btn-hayalet" aria-label="Kapat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
                 </button>
             </div>
-
-            <!-- Status Indicator -->
-            <div class="flex items-center justify-between">
-                <div id="publishStatusBadge" class="px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded-full text-xs font-bold flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Canlı Yayın Aktif
+            <div id="publishStatusBadge" class="nx-rozet">Yayında</div>
+            <div class="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-5 items-center">
+                <div class="flex flex-col items-center gap-1.5">
+                    <div class="p-2 bg-white rounded-xl ring-1 ring-slate-200"><img id="publishQrCodeImg" src="" alt="Bağlantının QR kodu" class="w-28 h-28 object-contain"></div>
+                    <span class="text-xs nx-soluk">Telefonla tara</span>
                 </div>
-                <div class="text-[11px] text-slate-400 font-mono">SSL / HTTPS Korumalı</div>
-            </div>
-
-            <!-- Link Details & QR Container -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900/60 p-4 rounded-2xl border border-white/5 items-center">
-                <!-- QR Box -->
-                <div class="flex flex-col items-center justify-center p-2 bg-white rounded-xl">
-                    <img id="publishQrCodeImg" src="" alt="QR Code" class="w-28 h-28 object-contain">
-                    <span class="text-[10px] text-slate-800 font-bold mt-1">Telefondan Tara</span>
-                </div>
-
-                <!-- URLs Box -->
-                <div class="md:col-span-2 space-y-3 text-xs">
-                    <!-- Public Cloudflare URL -->
+                <div class="space-y-3 min-w-0">
                     <div>
-                        <label class="font-bold text-emerald-400 flex items-center gap-1.5 mb-1">
-                            <i class="fa-solid fa-earth-americas"></i> <span>Genel İnternet Bağlantısı (Dünya Erişimi)</span>
-                        </label>
+                        <label for="publishPublicUrlInput" class="nx-etiket">Paylaşım bağlantısı</label>
                         <div class="flex gap-1.5">
-                            <input type="text" id="publishPublicUrlInput" readonly class="flex-1 p-2 bg-slate-950 border border-emerald-500/30 rounded-xl text-emerald-200 font-mono text-[11px] focus:outline-none select-all">
-                            <button onclick="copyPublishUrl('public')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-1 transition-all" title="Kopyala">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
+                            <input type="text" id="publishPublicUrlInput" readonly class="nx-girdi mono text-xs">
+                            <button onclick="copyPublishUrl('public')" class="nx-btn nx-btn-ikinci" title="Kopyala" aria-label="Bağlantıyı kopyala"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
                         </div>
                     </div>
-
-                    <!-- Local Network URL -->
                     <div>
-                        <label class="font-bold text-slate-400 flex items-center gap-1.5 mb-1">
-                            <i class="fa-solid fa-network-wired"></i> <span>Yerel Ağ (LAN) Bağlantısı</span>
-                        </label>
+                        <label for="publishLocalUrlInput" class="nx-etiket">Yerel ağ bağlantısı</label>
                         <div class="flex gap-1.5">
-                            <input type="text" id="publishLocalUrlInput" readonly class="flex-1 p-2 bg-slate-950 border border-white/10 rounded-xl text-slate-300 font-mono text-[11px] focus:outline-none select-all">
-                            <button onclick="copyPublishUrl('local')" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold flex items-center gap-1 transition-all" title="Kopyala">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
+                            <input type="text" id="publishLocalUrlInput" readonly class="nx-girdi mono text-xs">
+                            <button onclick="copyPublishUrl('local')" class="nx-btn nx-btn-ikinci" title="Kopyala" aria-label="Yerel bağlantıyı kopyala"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Footer Action Buttons -->
-            <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-3">
-                <div class="text-[11px] text-slate-500">Bu bağlantıyı herkesle paylaşabilirsiniz.</div>
-                <div class="flex items-center gap-2">
-                    <button onclick="closePublishModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all">
-                        Kapat
-                    </button>
-                    <a id="publishOpenNewTabBtn" href="#" target="_blank" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 transition-all">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> <span>Yeni Sekmede Aç</span>
-                    </a>
-                </div>
+            <div class="flex items-center justify-end gap-2 pt-1">
+                <button onclick="closePublishModal()" class="nx-btn nx-btn-ikinci">Kapat</button>
+                <a id="publishOpenNewTabBtn" href="#" target="_blank" rel="noopener" class="nx-btn nx-btn-ana">Yeni sekmede aç</a>
             </div>
         </div>
     `;

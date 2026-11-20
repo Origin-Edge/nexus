@@ -1,192 +1,249 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus AI — Qwen 2.5 Coder (Topcubuntu GPU)</title>
-    
-    <!-- CDNs -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Nexus AI Studio</title>
+    <meta name="description" content="Kendi bilgisayarında çalışan, açık kaynak ve çok sağlayıcılı yapay zekâ stüdyosu.">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232563eb'/%3E%3Cpath d='M10 22V10l12 12V10' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>tailwind.config = { darkMode: "media", theme: { extend: { fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] } } } };</script>
+    <!-- Rol şablonlarının simgeleri sunucudan Font Awesome adıyla gelir -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="h-screen flex overflow-hidden antialiased select-none bg-[#06090e]">
+<body class="h-full flex overflow-hidden">
 
-    <!-- 1. Collapsible Sidebar -->
-    <aside id="sidebar" class="w-72 bg-[#0a0f19] border-r border-white/10 flex flex-col justify-between shrink-0 transition-all z-20">
-        <div class="p-4 space-y-4">
-            <!-- Brand & New Chat -->
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 flex items-center justify-center text-white shadow-lg">
-                        <i class="fa-solid fa-bolt text-sm"></i>
-                    </div>
-                    <div>
-                        <div class="font-black text-sm tracking-wide text-white">Nexus AI</div>
-                        <div class="text-[10px] text-emerald-400 font-mono font-bold">Qwen 2.5 Edition</div>
-                    </div>
-                </div>
-                <button onclick="setLanguage(currentLang === 'tr' ? 'en' : 'tr')" id="langToggleBtn" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-white/10 flex items-center gap-1 transition-all">
-                    <span>🇹🇷</span><span class="font-bold text-xs">TR</span>
-                </button>
-            </div>
-
-            <button onclick="createNewChat()" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-emerald-500/25 active:scale-95">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Yeni Sohbet</span>
-            </button>
-
-            <!-- Search Chats -->
-            <div class="relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                <input type="text" id="searchChatInput" placeholder="Sohbetlerde ara..." class="w-full pl-8 pr-3 py-1.5 bg-slate-900/80 border border-white/5 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-emerald-500">
-            </div>
-
-            <!-- Chat History -->
-            <div class="space-y-1">
-                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider px-1">Geçmiş Sohbetler</div>
-                <div id="chatsHistoryList" class="space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto pr-1"></div>
-            </div>
+    <!-- Kenar çubuğu -->
+    <aside id="sidebar" class="nx-yan w-72 shrink-0 h-full flex flex-col">
+        <div class="h-14 px-4 flex items-center justify-between shrink-0">
+            <a href="/" class="flex items-center gap-2.5" aria-label="Nexus AI Studio">
+                <span class="nx-logo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18V6l12 12V6"/></svg>
+                </span>
+                <span class="leading-tight">
+                    <span class="block text-[15px] font-bold tracking-tight">Nexus</span>
+                    <span class="block text-xs nx-soluk">AI Studio</span>
+                </span>
+            </a>
+            <button onclick="setLanguage(currentLang === 'tr' ? 'en' : 'tr')" id="langToggleBtn" class="nx-btn nx-btn-hayalet text-xs font-semibold px-2" title="Dil">TR</button>
         </div>
 
-        <!-- Clean Sidebar Footer (No admin/settings buttons) -->
-        <div class="p-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-500 font-mono">
-            <span class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Topcubuntu GPU</span>
-            </span>
-            <span class="text-[10px] text-slate-600">RTX 4060</span>
+        <div class="px-3 space-y-2 shrink-0">
+            <button onclick="createNewChat(); yanKapat()" class="nx-btn nx-btn-ikinci w-full justify-start">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Yeni sohbet
+            </button>
+            <label class="relative block">
+                <span class="sr-only">Sohbetlerde ara</span>
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 nx-soluk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="search" id="searchChatInput" placeholder="Sohbetlerde ara" class="nx-girdi pl-9">
+            </label>
+        </div>
+
+        <div class="px-3 pt-4 pb-1 text-xs font-semibold nx-soluk shrink-0">Sohbetler</div>
+        <nav id="chatsHistoryList" class="flex-1 overflow-y-auto px-2 pb-3 space-y-0.5" aria-label="Sohbet geçmişi"></nav>
+
+        <div class="p-3 border-t shrink-0" style="border-color: var(--cizgi)">
+            <a href="/admin.html" class="nx-btn nx-btn-hayalet w-full justify-start px-2.5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+                Kontrol paneli
+            </a>
+            <div class="mt-1 px-2.5 flex items-center gap-2 text-xs nx-soluk">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Kendi sunucunda çalışıyor
+            </div>
         </div>
     </aside>
+    <div id="yanPerde" class="fixed inset-0 bg-slate-900/40 z-30" onclick="yanKapat()"></div>
 
-    <!-- 2. Main Studio Canvas -->
-    <main class="flex-1 flex flex-col h-full bg-[#06090e] overflow-hidden relative">
-        
-        <!-- Top Navigation Bar -->
-        <header class="h-14 border-b border-white/10 px-6 flex items-center justify-between glass-panel z-10 shrink-0">
-            <div class="flex items-center gap-3">
-                <!-- Locked GPU Badge (No dropdowns) -->
-                <div class="flex items-center gap-2 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-emerald-500/30 text-xs text-emerald-400 font-bold shadow-md">
-                    <i class="fa-solid fa-microchip text-emerald-400 animate-pulse"></i>
-                    <span>Qwen 2.5 Coder</span>
-                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-md font-mono border border-emerald-500/30">Topcubuntu GPU Offloaded (RTX 4060)</span>
-                </div>
-
-                <!-- Active Persona Badge -->
-                <span id="activePersonaBadge" class="hidden text-[11px] font-bold px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full"></span>
+    <!-- Ana alan -->
+    <main class="flex-1 min-w-0 h-full flex flex-col relative">
+        <header class="nx-ust h-14 px-3 sm:px-5 flex items-center justify-between gap-2 shrink-0 z-10">
+            <div class="flex items-center gap-2 min-w-0">
+                <button class="nx-btn nx-btn-hayalet md:hidden" onclick="document.body.classList.add('yan-acik')" aria-label="Menüyü aç">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <label class="nx-hap" title="Sağlayıcı">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>
+                    <span class="sr-only">Sağlayıcı</span>
+                    <select id="providerSelect" onchange="switchProvider(this.value)">
+                        <option value="ollama">Ollama (yerel)</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="groq">Groq</option>
+                        <option value="anthropic">Anthropic</option>
+                        <option value="custom">Özel uç nokta</option>
+                    </select>
+                </label>
+                <label class="nx-hap hidden sm:inline-flex" title="Model">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>
+                    <span class="sr-only">Model</span>
+                    <select id="modelSelect" onchange="switchModel(this.value)">
+                        <option value="">Modeller yükleniyor…</option>
+                    </select>
+                </label>
+                <span id="activePersonaBadge" class="nx-rozet hidden"></span>
             </div>
 
-            <div class="flex items-center gap-2">
-                <button onclick="createNewChat()" class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-all text-xs" title="Sohbeti Temizle">
-                    <i class="fa-solid fa-rotate-left"></i>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="openSettingsModal()" class="nx-btn nx-btn-ikinci" title="Sağlayıcı anahtarları ve sunucu ayarları">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                    <span class="hidden sm:inline">Ayarlar</span>
+                </button>
+                <button onclick="createNewChat()" class="nx-btn nx-btn-hayalet" title="Yeni sohbet" aria-label="Yeni sohbet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                 </button>
             </div>
         </header>
 
-        <!-- Messages Viewport -->
-        <div id="messagesContainer" class="flex-1 overflow-y-auto p-6 space-y-6 max-w-4xl w-full mx-auto select-text"></div>
+        <!-- Mesajlar -->
+        <div class="flex-1 overflow-y-auto">
+            <div id="messagesContainer" class="max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8 select-text"></div>
+        </div>
 
-        <!-- Welcome Hero View (When no messages) -->
-        <div id="welcomeHero" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-0 pointer-events-auto">
-            <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-400 flex items-center justify-center text-white text-3xl shadow-2xl mb-4 animate-bounce">
-                <i class="fa-solid fa-bolt"></i>
-            </div>
-            <h1 class="text-2xl font-black text-white tracking-tight">Qwen 2.5 Coder</h1>
-            <p class="text-xs text-slate-400 mt-1 max-w-md">Topcubuntu Ev Sunucusu (NVIDIA RTX 4060 GPU Offloading) donanım hızıyla çalışan akıllı kod & yanıt asistanı.</p>
-
-            <!-- Featured Personas Carousel -->
-            <div class="mt-8 max-w-2xl w-full text-left">
-                <div class="text-xs font-bold text-slate-400 mb-2 px-1">Öne Çıkan Rol Şablonları</div>
-                <div id="presetsCarousel" class="flex gap-3 overflow-x-auto pb-2"></div>
+        <!-- Karşılama -->
+        <div id="welcomeHero" class="absolute inset-x-0 top-14 bottom-36 overflow-y-auto flex flex-col items-center justify-center px-4 sm:px-6 text-center">
+            <span class="nx-rozet mb-4">Açık kaynak · Kendi sunucunda</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Bugün ne yapalım?</h1>
+            <p class="mt-3 max-w-lg text-[15px] leading-7 nx-ikinci">Yerel modellerin ya da kendi API anahtarlarınla çalış. Konuşmaların ve anahtarların yalnızca senin sunucunda durur.</p>
+            <div class="mt-8 w-full max-w-3xl text-left">
+                <div class="text-xs font-semibold nx-soluk mb-2.5 px-1">Rol şablonları</div>
+                <div id="presetsCarousel" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
             </div>
         </div>
 
-        <!-- Sticky Floating Prompt Input Capsule -->
-        <div class="p-4 max-w-4xl w-full mx-auto z-10">
-            <div class="glass-panel p-2.5 rounded-2xl border border-white/10 shadow-2xl focus-within:border-emerald-500 transition-all flex flex-col gap-2">
-                <textarea id="promptInput" rows="1" placeholder="Bir mesaj yazın veya kod/web uygulaması isteyin... (Shift+Enter yeni satır)" class="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 focus:outline-none resize-none px-3 py-1.5 max-h-44"></textarea>
-                
-                <div class="flex items-center justify-between pt-1 border-t border-white/5">
+        <!-- Yazma kutusu -->
+        <div class="px-3 sm:px-6 pb-4 pt-2 shrink-0 relative z-10" style="background: linear-gradient(to top, var(--zemin) 70%, transparent)">
+            <div class="nx-yazma max-w-3xl mx-auto p-2">
+                <label for="promptInput" class="sr-only">Mesajın</label>
+                <textarea id="promptInput" rows="1" placeholder="Bir şey sor ya da kod yazdır…" class="w-full border-0 text-[15px] leading-6 resize-none px-2.5 py-2 max-h-48 focus:outline-none focus:ring-0"></textarea>
+                <div class="flex items-center justify-between pt-1">
+                    <button onclick="toggleVoice()" id="voiceInputBtn" class="nx-btn nx-btn-hayalet text-slate-400" title="Sesle yaz" aria-label="Sesle yaz">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v4"/></svg>
+                    </button>
                     <div class="flex items-center gap-2">
-                        <button onclick="toggleVoice()" id="voiceInputBtn" class="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800/80 rounded-xl text-xs transition-all" title="Sesli Konuşma">
-                            <i class="fa-solid fa-microphone"></i>
+                        <button onclick="stopGeneration()" id="stopBtn" class="hidden nx-btn nx-btn-ikinci">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+                            Durdur
                         </button>
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                        <button id="sendBtn" onclick="sendMessage()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg transition-all active:scale-95">
-                            <span>Gönder</span>
-                            <i class="fa-solid fa-arrow-up text-[10px]"></i>
-                        </button>
-                        <button id="stopBtn" onclick="stopStreaming()" class="hidden px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-black flex items-center gap-2 shadow-lg transition-all">
-                            <span>Durdur</span>
-                            <i class="fa-solid fa-stop text-[10px]"></i>
+                        <button onclick="sendMessage()" id="sendBtn" class="nx-gonder" title="Gönder (Enter)" aria-label="Gönder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                         </button>
                     </div>
                 </div>
             </div>
+            <p class="max-w-3xl mx-auto mt-2 text-center text-xs nx-soluk">Yapay zekâ hata yapabilir. Önemli bilgileri kontrol et.</p>
         </div>
     </main>
 
-    <!-- 3. Live Artifact Sandbox Modal -->
-    <div id="sandboxModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xl hidden z-50 items-center justify-center p-4">
-        <div class="w-full h-full max-w-6xl max-h-[92vh] bg-[#0c121e] border border-white/10 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
-            <!-- Sandbox Header -->
-            <div class="h-14 border-b border-white/10 px-6 flex items-center justify-between bg-slate-900/90 shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xs font-bold">
-                        <i class="fa-solid fa-play"></i>
-                    </div>
-                    <div>
-                        <div class="font-bold text-xs text-white">⚡ Canlı Artifact Sandbox</div>
-                        <div class="text-[10px] text-slate-400">HTML/CSS/JS canlı render</div>
-                    </div>
+    <!-- Ayarlar -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50" role="dialog" aria-modal="true" aria-labelledby="ayarBaslik">
+        <div class="nx-kutu max-w-lg w-full flex flex-col max-h-[90vh]">
+            <div class="flex items-start justify-between gap-4 p-5 pb-4">
+                <div>
+                    <h2 id="ayarBaslik" class="text-base font-semibold">Sağlayıcı ayarları</h2>
+                    <p class="text-sm nx-ikinci mt-0.5">Anahtarlar yalnızca bu sunucuda saklanır.</p>
                 </div>
+                <button onclick="closeSettingsModal()" class="nx-btn nx-btn-hayalet" aria-label="Kapat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
 
-                <!-- Responsive Device Switcher -->
-                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-white/10 text-xs">
-                    <button id="deviceBtn-desktop" onclick="setDeviceMode('desktop')" class="device-btn px-3 py-1 rounded-lg text-slate-300 font-bold hover:bg-slate-800 transition-all text-xs">Masaüstü</button>
-                    <button id="deviceBtn-tablet" onclick="setDeviceMode('tablet')" class="device-btn px-3 py-1 rounded-lg text-slate-300 font-bold hover:bg-slate-800 transition-all text-xs">Tablet</button>
-                    <button id="deviceBtn-mobile" onclick="setDeviceMode('mobile')" class="device-btn px-3 py-1 rounded-lg text-slate-300 font-bold hover:bg-slate-800 transition-all text-xs">Mobil</button>
+            <div class="px-5 space-y-4 overflow-y-auto">
+                <div>
+                    <label for="input_url_ollama" class="nx-etiket">Ollama adresi</label>
+                    <input type="text" id="input_url_ollama" placeholder="http://localhost:11434" class="nx-girdi mono">
+                    <p class="nx-ipucu">Ollama aynı bilgisayardaysa boş bırakabilirsin.</p>
                 </div>
-
-                <!-- Action Controls -->
-                <div class="flex items-center gap-2">
-                    <button onclick="publishCurrentArtifact()" id="publishArtifactBtn" class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 transition-all" title="Tek tıkla internete ve dünyaya aç">
-                        <i class="fa-solid fa-globe text-xs"></i> <span>Dünyaya Aç / Paylaş</span>
-                    </button>
-                    <button onclick="runSandboxCode()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold border border-white/10 flex items-center gap-1.5 transition-all">
-                        <i class="fa-solid fa-rotate-right text-[10px]"></i> <span>Yenile</span>
-                    </button>
-                    <button onclick="downloadSandboxHtml()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
-                        <i class="fa-solid fa-download text-[10px]"></i> <span>İndir</span>
-                    </button>
-                    <button onclick="closeSandbox()" class="p-2 text-slate-400 hover:text-white rounded-xl text-xs transition-all">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
+                <div>
+                    <label for="input_key_gemini" class="nx-etiket">Google Gemini API anahtarı</label>
+                    <input type="password" id="input_key_gemini" placeholder="AIza…" class="nx-girdi mono" autocomplete="off">
+                </div>
+                <div>
+                    <label for="input_key_openai" class="nx-etiket">OpenAI API anahtarı</label>
+                    <input type="password" id="input_key_openai" placeholder="sk-…" class="nx-girdi mono" autocomplete="off">
+                </div>
+                <div>
+                    <label for="input_key_groq" class="nx-etiket">Groq API anahtarı</label>
+                    <input type="password" id="input_key_groq" placeholder="gsk_…" class="nx-girdi mono" autocomplete="off">
+                </div>
+                <div>
+                    <label for="input_key_anthropic" class="nx-etiket">Anthropic API anahtarı</label>
+                    <input type="password" id="input_key_anthropic" placeholder="sk-ant-…" class="nx-girdi mono" autocomplete="off">
                 </div>
             </div>
 
-            <!-- Iframe Container -->
-            <div class="flex-1 bg-slate-950 flex items-center justify-center p-3 overflow-hidden">
-                <div id="sandboxFrameWrapper" class="h-full bg-white rounded-2xl overflow-hidden shadow-2xl transition-all duration-300" style="width: 100%;">
-                    <iframe id="sandboxIframe" class="w-full h-full border-0" sandbox="allow-scripts allow-modals allow-same-origin allow-forms"></iframe>
-                </div>
+            <div class="flex items-center justify-end gap-2 p-5 pt-4 mt-2 border-t" style="border-color: var(--cizgi)">
+                <button onclick="closeSettingsModal()" class="nx-btn nx-btn-ikinci">Vazgeç</button>
+                <button onclick="saveSettings()" class="nx-btn nx-btn-ana">Kaydet</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toastNotification" class="fixed bottom-6 right-6 px-4 py-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold shadow-2xl border border-emerald-400/40 opacity-0 translate-y-4 pointer-events-none transition-all duration-300 flex items-center gap-2 z-50">
-        <i class="fa-solid fa-check-circle text-emerald-300 text-sm"></i>
-        <span id="toastText">İşlem tamamlandı!</span>
+    <!-- Canlı önizleme (sanal alan) -->
+    <div id="sandboxModal" class="fixed inset-0 hidden flex-col z-50" style="background: var(--yan)" role="dialog" aria-modal="true" aria-label="Canlı önizleme">
+        <div class="nx-ust h-14 px-3 sm:px-5 flex items-center justify-between gap-2 shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+                <button onclick="closeSandbox()" class="nx-btn nx-btn-hayalet" aria-label="Kapat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+                <span class="text-sm font-semibold truncate">Canlı önizleme</span>
+            </div>
+
+            <div class="nx-bolumlu hidden md:inline-flex" role="group" aria-label="Ekran boyutu">
+                <button onclick="setDeviceMode('desktop')" id="deviceBtn-desktop" class="device-btn active-device">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Masaüstü
+                </button>
+                <button onclick="setDeviceMode('tablet')" id="deviceBtn-tablet" class="device-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M11 18h2"/></svg>Tablet
+                </button>
+                <button onclick="setDeviceMode('mobile')" id="deviceBtn-mobile" class="device-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>Telefon
+                </button>
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="runSandboxCode()" class="nx-btn nx-btn-hayalet" title="Yenile" aria-label="Yenile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
+                </button>
+                <button onclick="downloadSandboxHtml()" class="nx-btn nx-btn-ikinci">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg>
+                    <span class="hidden sm:inline">İndir</span>
+                </button>
+                <button onclick="publishCurrentArtifact()" id="publishArtifactBtn" class="nx-btn nx-btn-ana" title="Bağlantıyla paylaş">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+                    <span>Yayınla</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex-1 flex items-center justify-center p-3 sm:p-5 overflow-hidden">
+            <div id="sandboxFrameWrapper" class="h-full bg-white rounded-2xl overflow-hidden transition-all duration-300" style="width: 100%; box-shadow: inset 0 0 0 1px var(--cizgi), var(--golge)">
+                <iframe id="sandboxIframe" class="w-full h-full border-0" title="Önizleme" sandbox="allow-scripts allow-modals allow-forms"></iframe>
+            </div>
+        </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Bildirim -->
+    <div id="toastNotification" role="status" aria-live="polite" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl text-sm font-medium shadow-xl opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50">
+        <span id="toastText">İşlem tamamlandı</span>
+    </div>
+
+    <script>
+        function yanKapat() { document.body.classList.remove("yan-acik"); }
+        document.addEventListener("DOMContentLoaded", () => {
+            const ara = document.getElementById("searchChatInput");
+            if (ara) ara.addEventListener("input", () => { if (typeof renderChatsList === "function") renderChatsList(); });
+        });
+    </script>
     <script src="js/i18n.js"></script>
     <script src="js/providers.js"></script>
     <script src="js/voice.js"></script>

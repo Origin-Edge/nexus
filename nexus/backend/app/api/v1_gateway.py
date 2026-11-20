@@ -78,10 +78,10 @@ async def openai_chat_completions(
     x_api_key: Optional[str] = Header(default=None)
 ):
     token = get_auth_token(authorization, x_api_key)
-    if token and not verify_api_key(token):
+    if not verify_api_key(token):
         raise HTTPException(
             status_code=401,
-            detail={"error": {"message": "Geçersiz veya süresi dolmuş Nexus API Anahtarı.", "type": "invalid_request_error", "code": "invalid_api_key"}}
+            detail={"error": {"message": "Geçerli bir Nexus API anahtarı gerekli (Authorization: Bearer nx-live-...). Anahtarı Kontrol Paneli > API Anahtarları'ndan oluştur.", "type": "invalid_request_error", "code": "invalid_api_key"}}
         )
 
     cfg = load_server_settings()
@@ -212,7 +212,11 @@ async def openai_chat_completions(
         }
 
 @router.post("/v1/completions")
-async def openai_completions(req: Request):
+async def openai_completions(
+    req: Request,
+    authorization: Optional[str] = Header(default=None),
+    x_api_key: Optional[str] = Header(default=None)
+):
     body = await req.json()
     prompt = body.get("prompt", "")
     messages = [{"role": "user", "content": prompt if isinstance(prompt, str) else str(prompt)}]
@@ -222,4 +226,4 @@ async def openai_completions(req: Request):
         temperature=body.get("temperature", 0.7),
         stream=body.get("stream", False)
     )
-    return await openai_chat_completions(chat_req)
+    return await openai_chat_completions(chat_req, authorization=authorization, x_api_key=x_api_key)

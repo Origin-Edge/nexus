@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import os
+import socket
 import time
 import uuid
 import json
@@ -115,6 +116,26 @@ class PublishRequest(BaseModel):
     html: str
     title: Optional[str] = "Nexus AI Generated App"
 
+
+def _yerel_adres() -> str:
+    """This machine's LAN address (no traffic is sent), NEXUS_LAN_URL overrides it."""
+    env = os.environ.get("NEXUS_LAN_URL", "").rstrip("/")
+    if env:
+        return env
+    port = os.environ.get("NEXUS_PORT", "3050")
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("10.255.255.255", 1))
+        ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        return ""
+    # Docker bridge (macOS/Windows): this is the container's own address, useless from a phone.
+    # Return nothing; the browser then uses the address it opened Nexus with.
+    if os.path.exists("/.dockerenv") and ip.startswith("172."):
+        return ""
+    return f"http://{ip}:{port}"
+
 @router.post("/api/deploy/publish")
 async def publish_deployment(req: PublishRequest, request: Request):
     # Yerel adresi isteğin kendi Host başlığından türet (sabit LAN IP'si YOK)
@@ -134,12 +155,12 @@ async def publish_deployment(req: PublishRequest, request: Request):
         f.write(html_content)
 
     meta = load_metadata()
+    # Publishing never opens a tunnel by itself (a tunnel to the backend would expose every /api
+    # endpoint). Without an active tunnel the page is shared on the local network only.
     pub_url = tunnel_manager.public_url
-    if not pub_url:
-        pub_url = tunnel_manager.start_tunnel()
 
     # Yerel adres: hangi Host/Port üzerinden geldiysek o (sabit IP yok)
-    local_base = f"http://{req_host}:{req_port}" if req_port not in (80,) else f"http://{req_host}"
+    local_base = f"http://{req_host}:{req_port}" if req_port not in ("80", 80) else f"http://{req_host}"
     meta[deploy_id] = {
         "id": deploy_id,
         "title": req.title,
@@ -190,8 +211,8 @@ async def list_deployments():
     for k, v in meta.items():
         items.append({
             **v,
-            "local_url": f"http://192.168.0.188:3050/share/{k}",
-            "public_url": f"{pub_url}/share/{k}" if pub_url else f"http://192.168.0.188:3050/share/{k}"
+            "local_url": f"{_yerel_adres()}/share/{k}",
+            "public_url": f"{pub_url}/share/{k}" if pub_url else f"{_yerel_adres()}/share/{k}"
         })
     return {
         "status": "ok",
@@ -210,8 +231,8 @@ async def get_tunnel_status():
         "url": pub_url or "",
         "public_studio_url": pub_url or "",
         "public_admin_url": f"{pub_url}/admin.html" if pub_url else "",
-        "local_studio_url": "http://192.168.0.188:3050",
-        "local_admin_url": "http://192.168.0.188:3050/admin.html",
+        "local_studio_url": _yerel_adres(),
+        "local_admin_url": f"{_yerel_adres()}/admin.html",
         "service": "Cloudflare Quick Tunnel (Zero-Config HTTPS)"
     }
 

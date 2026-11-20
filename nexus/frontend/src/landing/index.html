@@ -11,7 +11,6 @@
     <meta property="og:title" content="Nexus AI Studio — Modern Self-Hosted AI Platform">
     <meta property="og:description" content="Tek satırda kurulum, çoklu AI sağlayıcı, canlı kod sandbox, gelişmiş model benchmark arenası ve tam cross-platform destek.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://nexus.oedge.xyz">
 
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
@@ -204,7 +203,7 @@
                     Terminalden anında yeni bir sınırsız Nexus API anahtarı alın:
                 </p>
                 <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)" title="Kopyala"><i class="fa-regular fa-copy"></i></button><span class="cmd">curl</span> -X POST <span class="url">https://nexus.oedge.xyz/api/apikeys/generate</span> <span class="pipe">\</span>
+                    <button class="copy-btn" onclick="copyCode(this)" title="Kopyala"><i class="fa-regular fa-copy"></i></button><span class="cmd">curl</span> -X POST <span class="url">http://localhost:3050/api/apikeys/generate</span> <span class="pipe">\</span>
   -H <span class="url">"Content-Type: application/json"</span> <span class="pipe">\</span>
   -d <span class="url">'{"name": "Sınırsız İstemci Key"}'</span></div>
             </div>
@@ -219,7 +218,7 @@
                     Nexus API Gateway üzerinden modellere istek atın:
                 </p>
                 <div class="code-block">
-                    <button class="copy-btn" onclick="copyCode(this)" title="Kopyala"><i class="fa-regular fa-copy"></i></button><span class="cmd">curl</span> <span class="url">https://nexus.oedge.xyz/v1/chat/completions</span> <span class="pipe">\</span>
+                    <button class="copy-btn" onclick="copyCode(this)" title="Kopyala"><i class="fa-regular fa-copy"></i></button><span class="cmd">curl</span> <span class="url">http://localhost:3050/v1/chat/completions</span> <span class="pipe">\</span>
   -H <span class="url">"Authorization: Bearer nx-live-YOUR_KEY"</span> <span class="pipe">\</span>
   -H <span class="url">"Content-Type: application/json"</span> <span class="pipe">\</span>
   -d <span class="url">'{"model":"qwen2.5-coder:7b","messages":[{"role":"user","content":"Merhaba!"}]}'</span></div>
@@ -239,7 +238,7 @@
                 <button class="copy-btn" onclick="copyCode(this)" title="Kopyala"><i class="fa-regular fa-copy"></i></button><span class="cmd">from openai import OpenAI</span>
 
 <span class="cmd">client = OpenAI(</span>
-    <span class="url">base_url="https://nexus.oedge.xyz/v1",</span>
+    <span class="url">base_url="http://localhost:3050/v1",</span>
     <span class="url">api_key="nx-live-YOUR_KEY"</span>
 <span class="cmd">)</span>
 

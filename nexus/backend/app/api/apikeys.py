@@ -12,9 +12,10 @@ DATA_DIR = os.path.join(os.getcwd(), "data")
 APIKEYS_FILE = os.path.join(DATA_DIR, "apikeys.json")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# Varsayılan master key ortam değişkeniyle değiştirilebilir:
-#   Environment=NEXUS_MASTER_KEY=nx-live-kendi-anahtarin
-DEFAULT_MASTER_KEY = os.environ.get("NEXUS_MASTER_KEY") or "nx-live-unlimited-nexus-master-key"
+# Older releases shipped this key to everyone; it is publicly known, so it is never accepted.
+ESKI_GENEL_ANAHTAR = "nx-live-unlimited-nexus-master-key"
+# Optional own master key from the environment (Environment=NEXUS_MASTER_KEY=nx-live-...).
+ORTAM_ANAHTARI = (os.environ.get("NEXUS_MASTER_KEY") or "").strip()
 
 def load_apikeys() -> Dict[str, Any]:
     if os.path.exists(APIKEYS_FILE):
@@ -22,24 +23,15 @@ def load_apikeys() -> Dict[str, Any]:
             with open(APIKEYS_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 if "keys" in data:
+                    temiz = [k for k in data.get("keys", []) if k.get("key") != ESKI_GENEL_ANAHTAR]
+                    if len(temiz) != len(data.get("keys", [])):
+                        data["keys"] = temiz
+                        save_apikeys(data)
                     return data
         except Exception:
             pass
-            
-    # Default initial data
-    initial = {
-        "keys": [
-            {
-                "id": "key_master_001",
-                "key": DEFAULT_MASTER_KEY,
-                "name": "Sınırsız Ana Nexus API Key",
-                "rate_limit": "unlimited",
-                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-                "status": "active",
-                "requests_count": 0
-            }
-        ]
-    }
+    # Fresh install: no keys. Every installation creates its own from the Control Panel.
+    initial = {"keys": []}
     save_apikeys(initial)
     return initial
 
@@ -48,20 +40,20 @@ def save_apikeys(data: Dict[str, Any]):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 def verify_api_key(token: str) -> bool:
-    if not token:
+    """True only for an active key created on this installation."""
+    clean_token = (token or "").strip()
+    if not clean_token.startswith("nx-live-") or clean_token == ESKI_GENEL_ANAHTAR:
         return False
-    clean_token = token.strip()
-    if clean_token == DEFAULT_MASTER_KEY or clean_token.startswith("nx-live-"):
-        data = load_apikeys()
-        for item in data.get("keys", []):
-            if item.get("key") == clean_token and item.get("status") == "active":
-                item["requests_count"] = item.get("requests_count", 0) + 1
-                item["last_used"] = time.strftime("%Y-%m-%d %H:%M:%S")
-                save_apikeys(data)
-                return True
-        # If token starts with nx-live- but not found, still allow master/custom keys if active
+    if ORTAM_ANAHTARI and ORTAM_ANAHTARI != ESKI_GENEL_ANAHTAR and secrets.compare_digest(ORTAM_ANAHTARI, clean_token):
         return True
-    return True
+    data = load_apikeys()
+    for item in data.get("keys", []):
+        if item.get("status") == "active" and secrets.compare_digest(str(item.get("key", "")), clean_token):
+            item["requests_count"] = item.get("requests_count", 0) + 1
+            item["last_used"] = time.strftime("%Y-%m-%d %H:%M:%S")
+            save_apikeys(data)
+            return True
+    return False
 
 class GenerateKeyRequest(BaseModel):
     name: Optional[str] = "Sınırsız Client Key"

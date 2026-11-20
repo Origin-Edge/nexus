@@ -1,3 +1,5 @@
+// Sunucu yerel ağ adresini bulamadıysa (Docker bridge) göreli adres gelir; tarayıcının adresiyle tamamlanır.
+function tamAdres(u) { return (u && u.startsWith("/")) ? location.origin + u : (u || ""); }
 // Nexus AI Studio — Admin Control Panel v2.0 Engine
 
 const API_BASE = '/api';
@@ -19,8 +21,8 @@ function initTelemetryChart() {
                 {
                     label: 'CPU Kullanımı (%)',
                     data: cpuData,
-                    borderColor: '#00f2fe',
-                    backgroundColor: 'rgba(0, 242, 254, 0.08)',
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.35,
@@ -30,8 +32,8 @@ function initTelemetryChart() {
                 {
                     label: 'RAM Kullanımı (%)',
                     data: ramData,
-                    borderColor: '#8a2be2',
-                    backgroundColor: 'rgba(138, 43, 226, 0.06)',
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.06)',
                     borderWidth: 2.5,
                     fill: true,
                     tension: 0.35,
@@ -46,13 +48,13 @@ function initTelemetryChart() {
             animation: { duration: 300 },
             scales: {
                 x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                    grid: { color: 'rgba(148, 163, 184, 0.15)' },
                     ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
                 },
                 y: {
                     min: 0,
                     max: 100,
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    grid: { color: 'rgba(148, 163, 184, 0.15)' },
                     ticks: { color: '#64748b', font: { size: 10, family: 'JetBrains Mono' } }
                 }
             },
@@ -138,7 +140,7 @@ async function fetchOverview() {
             document.getElementById('val-os').textContent = s.os;
             document.getElementById('val-hostname').textContent = s.hostname;
             document.getElementById('val-python').textContent = `Python ${s.python_version}`;
-            document.getElementById('val-net').textContent = `⬇ ${h.net_recv_mb} MB | ⬆ ${h.net_sent_mb} MB`;
+            document.getElementById('val-net').textContent = `⬇ ${h.net_recv_mb} MB | ${h.net_sent_mb} MB`;
             
             document.getElementById('server-ping-text').textContent = `Server Online (${data.timestamp.split(' ')[1]})`;
 
@@ -182,10 +184,10 @@ async function fetchRunningModels() {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><span class="badge-model"><i class="fa-solid fa-cube"></i> ${m.name}</span></td>
-                    <td><span class="badge-size" style="background: rgba(0,245,160,0.15); color: var(--accent-green);">${m.size_vram_gb} GB VRAM</span></td>
+                    <td><span class="badge-size" style="color: var(--accent-green)">${m.size_vram_gb} GB VRAM</span></td>
                     <td><span class="badge-size">${m.size_total_gb} GB</span></td>
-                    <td style="color: #94a3b8; font-size: 0.8rem;">${m.expires_at ? m.expires_at.split('T')[1].slice(0,8) : 'Süresiz'}</td>
-                    <td style="text-align: right;">
+                    <td style="color: var(--metin-3); font-size: 0.8rem">${m.expires_at ? m.expires_at.split('T')[1].slice(0,8) : 'Süresiz'}</td>
+                    <td style="text-align: right">
                         <button class="btn-danger" onclick="unloadModel('${m.name}')">
                             <i class="fa-solid fa-eject"></i> VRAM'den Çıkar
                         </button>
@@ -194,11 +196,11 @@ async function fetchRunningModels() {
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Şu an VRAM'e yüklü model yok (İlk istekte otomatik yüklenir).</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem">Şu an VRAM'e yüklü model yok (İlk istekte otomatik yüklenir).</td></tr>`;
             document.getElementById('badge-vram-count').textContent = '0 Aktif';
         }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red);">VRAM modelleri alınamadı: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red)">VRAM modelleri alınamadı: ${e.message}</td></tr>`;
     }
 }
 
@@ -237,9 +239,9 @@ async function fetchInstalledModels() {
                 tr.innerHTML = `
                     <td><span class="badge-model"><i class="fa-solid fa-cube"></i> ${m.name}</span></td>
                     <td><span class="badge-size">${m.parameter_size !== 'N/A' ? m.parameter_size : ''} (${m.size_gb} GB)</span></td>
-                    <td><code style="font-size: 0.78rem; color: #a5b4fc;">${m.quantization_level}</code></td>
-                    <td style="color: #94a3b8; font-size: 0.8rem;">${m.format.toUpperCase()}</td>
-                    <td style="text-align: right;">
+                    <td><code style="font-size: 0.78rem">${m.quantization_level}</code></td>
+                    <td style="color: var(--metin-3); font-size: 0.8rem">${m.format.toUpperCase()}</td>
+                    <td style="text-align: right">
                         <button class="btn-danger" onclick="deleteModel('${m.name}')">
                             <i class="fa-solid fa-trash"></i> Sil
                         </button>
@@ -248,10 +250,10 @@ async function fetchInstalledModels() {
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Yüklü model bulunamadı veya Ollama çevrimdışı.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted)">Yüklü model bulunamadı veya Ollama çevrimdışı.</td></tr>`;
         }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red);">Modeller alınırken hata oluştu: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red)">Modeller alınırken hata oluştu: ${e.message}</td></tr>`;
     }
 }
 
@@ -270,7 +272,7 @@ async function pullModel() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İndiriliyor...';
     statusBox.style.display = 'block';
-    statusBox.style.background = 'rgba(0, 242, 254, 0.1)';
+    statusBox.style.background = 'var(--vurgu-zemin)';
     statusBox.style.color = 'var(--accent-cyan)';
     statusBox.textContent = `'${modelName}' indiriliyor, lütfen bekleyin (model boyutuna göre birkaç dakika sürebilir)...`;
 
@@ -282,9 +284,9 @@ async function pullModel() {
         });
         const data = await res.json();
         if (data.status === 'ok') {
-            statusBox.style.background = 'rgba(0, 245, 160, 0.15)';
+            statusBox.style.background = 'var(--kart-2)';
             statusBox.style.color = 'var(--accent-green)';
-            statusBox.textContent = `✅ Başarılı: ${data.message}`;
+            statusBox.textContent = `Başarılı: ${data.message}`;
             input.value = '';
             fetchInstalledModels();
             fetchRunningModels();
@@ -292,9 +294,9 @@ async function pullModel() {
             throw new Error(data.message || 'İndirme başarısız');
         }
     } catch (e) {
-        statusBox.style.background = 'rgba(255, 65, 108, 0.15)';
+        statusBox.style.background = 'var(--kart-2)';
         statusBox.style.color = 'var(--accent-red)';
-        statusBox.textContent = `❌ Hata: ${e.message}`;
+        statusBox.textContent = `Hata: ${e.message}`;
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-download"></i> İndir';
@@ -406,12 +408,12 @@ async function testProvider(prov) {
         const data = await res.json();
 
         if (data.status === 'ok') {
-            resBox.innerHTML = `<span style="color: var(--accent-green); font-weight: 600;">🟢 ${data.message} (${data.latency_ms}ms)</span>`;
+            resBox.innerHTML = `<span style="color: var(--accent-green); font-weight: 600">${data.message} (${data.latency_ms}ms)</span>`;
         } else {
-            resBox.innerHTML = `<span style="color: var(--accent-red); font-weight: 600;">🔴 ${data.message}</span>`;
+            resBox.innerHTML = `<span style="color: var(--accent-red); font-weight: 600">${data.message}</span>`;
         }
     } catch (e) {
-        if (resBox) resBox.innerHTML = `<span style="color: var(--accent-red); font-weight: 600;">🔴 Bağlantı Hatası: ${e.message}</span>`;
+        if (resBox) resBox.innerHTML = `<span style="color: var(--accent-red); font-weight: 600">Bağlantı Hatası: ${e.message}</span>`;
     }
 }
 
@@ -476,7 +478,7 @@ async function fetchLogs() {
                     <span class="log-time">[${l.timestamp}]</span>
                     <span class="log-tag ${l.status}">${l.status.toUpperCase()}</span>
                     <span>Sağlayıcı: <strong>${l.provider}</strong> | Model: <code>${l.model}</code> | Gecikme: <strong>${l.latency_ms}ms</strong> | Hız: <strong>${l.tok_per_sec || 0} tok/s</strong></span>
-                    ${l.error ? `<span style="color: var(--accent-red); margin-left: 8px;">(${l.error})</span>` : ''}
+                    ${l.error ? `<span style="color: var(--accent-red); margin-left: 8px">(${l.error})</span>` : ''}
                 `;
                 term.appendChild(line);
             });
@@ -512,27 +514,27 @@ async function fetchDeployments() {
         if (data.active && data.public_studio_url) {
             if (pill) {
                 pill.className = 'status-pill';
-                pill.style.background = 'rgba(0, 245, 160, 0.12)';
-                pill.style.borderColor = 'rgba(0, 245, 160, 0.3)';
+                pill.style.background = 'var(--kart)';
+                pill.style.borderColor = 'var(--cizgi)';
                 pill.style.color = 'var(--accent-green)';
                 pill.innerHTML = '<span class="pulse-dot"></span> Canlı Dış Tünel Açık (Yayında)';
             }
 
             if (checkbox) checkbox.checked = true;
             if (sliderSpan) {
-                sliderSpan.style.background = 'linear-gradient(135deg, #00f5a0, #00f2fe)';
-                sliderSpan.style.boxShadow = '0 0 12px rgba(0, 245, 160, 0.4)';
+                sliderSpan.style.background = 'var(--vurgu)';
+                sliderSpan.style.boxShadow = 'none';
             }
             if (btnAction) {
-                btnAction.style.background = 'rgba(255, 65, 108, 0.2)';
-                btnAction.style.color = '#ff4b2b';
-                btnAction.style.border = '1px solid rgba(255, 65, 108, 0.4)';
+                btnAction.style.background = 'var(--kart)';
+                btnAction.style.color = 'var(--accent-red)';
+                btnAction.style.border = '1px solid var(--cizgi)';
             }
             if (btnActionText) btnActionText.textContent = 'Dış Erişimi Kapat';
             if (iconBox) {
-                iconBox.style.background = 'linear-gradient(135deg, rgba(0, 245, 160, 0.2), rgba(0, 242, 254, 0.2))';
-                iconBox.style.borderColor = 'rgba(0, 245, 160, 0.4)';
-                iconBox.style.color = 'var(--accent-green)';
+                iconBox.style.background = 'var(--vurgu-zemin)';
+                iconBox.style.borderColor = 'var(--vurgu-cizgi)';
+                iconBox.style.color = 'var(--vurgu)';
             }
 
             if (studioInput) studioInput.value = data.public_studio_url;
@@ -555,36 +557,38 @@ async function fetchDeployments() {
         } else {
             if (pill) {
                 pill.className = 'status-pill';
-                pill.style.background = 'rgba(255, 65, 108, 0.12)';
-                pill.style.borderColor = 'rgba(255, 65, 108, 0.3)';
+                pill.style.background = 'var(--kart)';
+                pill.style.borderColor = 'var(--cizgi)';
                 pill.style.color = 'var(--accent-red)';
                 pill.innerHTML = '<i class="fa-solid fa-lock"></i> Dış Erişim Kapalı (Yalnızca Yerel LAN)';
             }
 
             if (checkbox) checkbox.checked = false;
             if (sliderSpan) {
-                sliderSpan.style.background = '#334155';
+                sliderSpan.style.background = 'var(--metin-3)';
                 sliderSpan.style.boxShadow = 'none';
             }
             if (btnAction) {
-                btnAction.style.background = 'linear-gradient(135deg, var(--accent-green), var(--accent-blue))';
-                btnAction.style.color = '#04060c';
+                btnAction.style.background = 'var(--vurgu)';
+                btnAction.style.color = '#fff';
                 btnAction.style.border = 'none';
             }
             if (btnActionText) btnActionText.textContent = 'Dış Erişimi Aç';
             if (iconBox) {
-                iconBox.style.background = 'rgba(255, 255, 255, 0.05)';
-                iconBox.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                iconBox.style.color = '#94a3b8';
+                iconBox.style.background = 'var(--kart-2)';
+                iconBox.style.borderColor = 'var(--cizgi)';
+                iconBox.style.color = 'var(--metin-3)';
             }
 
-            if (studioInput) studioInput.value = '🔒 Dış erişim kapalı (Açmak için butona basın)';
-            if (cpInput) cpInput.value = '🔒 Dış erişim kapalı (Açmak için butona basın)';
+            if (studioInput) studioInput.value = 'Dış erişim kapalı (Açmak için butona basın)';
+            if (cpInput) cpInput.value = 'Dış erişim kapalı (Açmak için butona basın)';
             if (studioLink) studioLink.style.display = 'none';
             if (cpLink) cpLink.style.display = 'none';
 
+            const lanEl = document.getElementById('nexusLanUrl');
+            if (lanEl) lanEl.textContent = data.local_studio_url || location.origin;
             if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('http://' + window.location.host)}`;
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.local_studio_url || location.origin)}`;
                 qrImg.style.opacity = '0.35';
                 qrImg.style.filter = 'grayscale(100%)';
             }
@@ -601,23 +605,23 @@ async function fetchDeployments() {
                 const sizeKb = round((d.size_bytes || 0) / 1024, 1);
                 tr.innerHTML = `
                     <td>
-                        <div style="font-weight: 700; color: #fff;">${escapeHtml(d.title || 'Nexus Web App')}</div>
-                        <div style="font-size: 0.75rem; color: #64748b; font-family: 'JetBrains Mono', monospace;">ID: ${d.id}</div>
+                        <div style="font-weight: 700">${escapeHtml(d.title || 'Nexus Web App')}</div>
+                        <div style="font-size: 0.75rem; color: var(--metin-3); font-family: 'JetBrains Mono', monospace">ID: ${d.id}</div>
                     </td>
                     <td>
-                        <a href="${d.public_url}" target="_blank" style="color: var(--accent-green); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
-                            <i class="fa-solid fa-earth-americas text-xs"></i> <span>${d.public_url}</span>
+                        <a href="${tamAdres(d.public_url)}" target="_blank" style="color: var(--accent-green); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; display: flex; align-items: center; gap: 4px">
+                            <i class="fa-solid fa-earth-americas text-xs"></i> <span>${tamAdres(d.public_url)}</span>
                         </a>
                     </td>
                     <td>
-                        <a href="${d.local_url}" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
-                            ${d.local_url}
+                        <a href="${tamAdres(d.local_url)}" target="_blank" style="color: var(--accent-cyan); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem">
+                            ${tamAdres(d.local_url)}
                         </a>
                     </td>
                     <td><span class="badge-size">${sizeKb} KB</span></td>
-                    <td style="color: #94a3b8; font-size: 0.8rem;">${d.created_at || '-'}</td>
-                    <td><span class="badge-model" style="color: var(--accent-amber); border-color: rgba(255,179,0,0.3); background: rgba(255,179,0,0.1);"><i class="fa-regular fa-eye"></i> ${d.views || 0}</span></td>
-                    <td style="text-align: right;">
+                    <td style="color: var(--metin-3); font-size: 0.8rem">${d.created_at || '-'}</td>
+                    <td><span class="badge-model" style="color: var(--accent-amber); border-color: var(--cizgi)"><i class="fa-regular fa-eye"></i> ${d.views || 0}</span></td>
+                    <td style="text-align: right">
                         <button class="btn-danger" onclick="deleteDeployment('${d.id}')">
                             <i class="fa-solid fa-trash"></i> Sil
                         </button>
@@ -626,11 +630,11 @@ async function fetchDeployments() {
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Henüz yayınlanmış bir proje bulunmuyor. AI Studio üzerinden bir web kodu üretip "Dünyaya Aç" butonuna basarak ilk projenizi yayınlayın!</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem">Henüz yayınlanmış bir proje bulunmuyor. AI Studio üzerinden bir web kodu üretip "Dünyaya Aç" butonuna basarak ilk projenizi yayınlayın!</td></tr>`;
             document.getElementById('badge-deployments-count').textContent = '0';
         }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--accent-red);">Yayınlar alınamadı: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--accent-red)">Yayınlar alınamadı: ${e.message}</td></tr>`;
     }
 }
 
@@ -641,7 +645,7 @@ async function toggleStudioTunnel() {
     try {
         const res = await fetch(`${API_BASE}/deploy/studio-tunnel/toggle`, { method: 'POST' });
         const data = await res.json();
-        alert(data.message || (data.active ? '🟢 Dış erişim açıldı!' : '🔴 Dış erişim kapatıldı.'));
+        alert(data.message || (data.active ? 'Dış erişim açıldı!' : 'Dış erişim kapatıldı.'));
         await fetchDeployments();
     } catch (e) {
         alert(`Hata: ${e.message}`);
@@ -699,7 +703,7 @@ function copyRemoteUrl(type) {
     if (input && input.value && !input.value.includes('kapalı')) {
         navigator.clipboard.writeText(input.value);
         const name = type === 'studio' ? 'Nexus AI Studio' : 'Nexus Kontrol Paneli';
-        alert(`✅ ${name} dış erişim linki panoya kopyalandı!`);
+        alert(`${name} dış erişim linki panoya kopyalandı!`);
     } else {
         alert('Dış erişim kapalı olduğu için kopyalanacak bağlantı yok. Lütfen önce tüneli açın.');
     }
@@ -790,7 +794,7 @@ async function fetchSpecs(showToastAlert = false) {
             document.getElementById('spec-os-py').textContent = `Python ${os.python_version}`;
 
             if (showToastAlert) {
-                alert('✅ Tüm donanım ve sunucu özellikleri başarıyla tarandı ve güncellendi!');
+                alert('Tüm donanım ve sunucu özellikleri başarıyla tarandı ve güncellendi!');
             }
         }
     } catch (e) {
@@ -840,44 +844,44 @@ async function checkUpdates(showToast = false) {
                 if (topBanner) {
                     topBanner.style.display = 'flex';
                     const topText = document.getElementById('update-top-text');
-                    if (topText) topText.textContent = `🚀 Yeni Güncelleme: ${rem.sha}`;
+                    if (topText) topText.textContent = `Yeni Güncelleme: ${rem.sha}`;
                 }
                 if (statusBadge) {
-                    statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber);"></i> <span style="color: var(--accent-amber); font-weight: 800;">Yeni Güncelleme Mevcut! (${rem.sha})</span>`;
+                    statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span style="color: var(--accent-amber); font-weight: 700">Yeni Güncelleme Mevcut! (${rem.sha})</span>`;
                 }
                 if (statusSub) {
                     statusSub.textContent = `GitHub'da yeni sürüm (${rem.sha}: ${rem.message}) yayınlandı.`;
                 }
                 if (btnApply) {
-                    btnApply.style.background = 'linear-gradient(135deg, #ff9a44, #fc6076)';
+                    btnApply.style.background = 'var(--vurgu)';
                     btnApply.style.color = '#fff';
                     btnApply.innerHTML = `<i class="fa-solid fa-cloud-arrow-down fa-bounce"></i> <span>Şimdi Güncelle (${rem.sha})</span>`;
                     btnApply.disabled = false;
                 }
                 if (showToast) {
-                    alert(`🚀 Yeni bir güncelleme mevcut! (${rem.sha}: ${rem.message})\n\n'Şimdi Güncelle' butonuna basarak sistemi anında yükseltebilirsiniz.`);
+                    alert(`Yeni bir güncelleme mevcut! (${rem.sha}: ${rem.message})\n\n'Şimdi Güncelle' butonuna basarak sistemi anında yükseltebilirsiniz.`);
                 }
             } else {
                 if (topBanner) topBanner.style.display = 'none';
                 if (statusBadge) {
-                    statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span style="color: var(--accent-green); font-weight: 800;">Sisteminiz En Güncel Sürümde (${loc.sha})</span>`;
+                    statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span style="color: var(--accent-green); font-weight: 700">Sisteminiz En Güncel Sürümde (${loc.sha})</span>`;
                 }
                 if (statusSub) {
                     statusSub.textContent = `Resmi GitHub deposu (kefe3/nexus: ${loc.sha || rem.sha}) ile senkronize.`;
                 }
                 if (btnApply) {
-                    btnApply.style.background = 'rgba(255,255,255,0.08)';
-                    btnApply.style.color = '#cbd5e1';
+                    btnApply.style.background = 'var(--kart-2)';
+                    btnApply.style.color = 'var(--metin-2)';
                     btnApply.innerHTML = '<i class="fa-solid fa-rotate"></i> <span>Sistemi Yeniden Eşitle</span>';
                     btnApply.disabled = false;
                 }
                 if (showToast) {
-                    alert(`✅ Sistem en güncel sürümde (${loc.sha}).`);
+                    alert(`Sistem en güncel sürümde (${loc.sha}).`);
                 }
             }
         } else {
             if (statusBadge) {
-                statusBadge.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color: var(--accent-amber);"></i> <span style="color: var(--accent-amber); font-weight: 800;">Güncelleme Kontrol Uyarısı</span>`;
+                statusBadge.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span style="color: var(--accent-amber); font-weight: 700">Güncelleme Kontrol Uyarısı</span>`;
             }
             if (statusSub) {
                 statusSub.textContent = data.error || 'GitHub sürüm kontrolü yapılamadı.';
@@ -887,7 +891,7 @@ async function checkUpdates(showToast = false) {
                 btnApply.innerHTML = '<i class="fa-solid fa-rotate"></i> <span>Sistemi Yeniden Eşitle</span>';
             }
             if (showToast) {
-                alert(`⚠️ Güncelleme denetleme uyarısı: ${data.error || 'Bilinmeyen hata'}`);
+                alert(`Güncelleme denetleme uyarısı: ${data.error || 'Bilinmeyen hata'}`);
             }
         }
     } catch (e) {
@@ -920,34 +924,34 @@ async function fetchCommitHistory() {
                 const dateStr = c.date ? new Date(c.date).toLocaleString('tr-TR') : '-';
                 tr.innerHTML = `
                     <td>
-                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-cyan); background: rgba(0, 242, 254, 0.1); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(0, 242, 254, 0.2);">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-cyan); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--cizgi)">
                             ${escapeHtml(c.sha)}
                         </span>
                     </td>
                     <td>
-                        <div style="font-weight: 600; color: #fff; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <div style="font-weight: 600; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">
                             ${escapeHtml(c.message)}
                         </div>
                     </td>
                     <td>
-                        <span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;">
-                            <i class="fa-solid fa-user-gear" style="color: var(--accent-purple);"></i> ${escapeHtml(c.author)}
+                        <span style="font-size: 0.8rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px">
+                            <i class="fa-solid fa-user-gear"></i> ${escapeHtml(c.author)}
                         </span>
                     </td>
-                    <td style="color: var(--text-muted); font-size: 0.8rem;">${dateStr}</td>
-                    <td style="text-align: right;">
-                        <a href="${c.url || 'https://github.com/kefe3/nexus'}" target="_blank" class="btn-action" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                            <span>İncele</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem;"></i>
+                    <td style="color: var(--text-muted); font-size: 0.8rem">${dateStr}</td>
+                    <td style="text-align: right">
+                        <a href="${c.url || 'https://github.com/kefe3/nexus'}" target="_blank" class="btn-action" style="padding: 4px 10px; font-size: 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px">
+                            <span>İncele</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.65rem"></i>
                         </a>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.25rem;">Commit geçmişi alınamadı: ${data.error || 'Bilinmeyen hata'}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.25rem">Commit geçmişi alınamadı: ${data.error || 'Bilinmeyen hata'}</td></tr>`;
         }
     } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red); padding: 1.25rem;">Bağlantı hatası: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red); padding: 1.25rem">Bağlantı hatası: ${e.message}</td></tr>`;
     }
 }
 
@@ -962,9 +966,9 @@ async function applyUpdate() {
     if (modal) modal.style.display = 'flex';
     if (termBox) {
         termBox.innerHTML = `
-            <div style="color: var(--accent-cyan); font-weight: 700;">> [1/4] Nexus Güncelleme Motoru Başlatıldı...</div>
-            <div style="color: #64748b;">> Hedef Depo: https://github.com/kefe3/nexus.git (Dal: main)</div>
-            <div style="color: var(--accent-amber);">> [2/4] GitHub senkronizasyonu başlatılıyor...</div>
+            <div style="color: var(--accent-cyan); font-weight: 700">> [1/4] Nexus Güncelleme Motoru Başlatıldı...</div>
+            <div style="color: var(--metin-3)">> Hedef Depo: https://github.com/kefe3/nexus.git (Dal: main)</div>
+            <div style="color: var(--accent-amber)">> [2/4] GitHub senkronizasyonu başlatılıyor...</div>
         `;
     }
     if (btnClose) btnClose.style.display = 'none';
@@ -980,7 +984,7 @@ async function applyUpdate() {
                     data.steps.forEach(st => {
                         const stepDiv = document.createElement('div');
                         stepDiv.style.color = st.status === 'ok' ? 'var(--accent-green)' : 'var(--accent-amber)';
-                        stepDiv.innerHTML = `> [✓] ${st.step}: ${escapeHtml(st.output || 'Tamamlandı')}`;
+                        stepDiv.innerHTML = `> [] ${st.step}: ${escapeHtml(st.output || 'Tamamlandı')}`;
                         termBox.appendChild(stepDiv);
                     });
                 }
@@ -1083,22 +1087,22 @@ async function loadStoreCatalog() {
         const modelsGrid = document.getElementById('store-models-grid');
         if (modelsGrid && data.models) {
             modelsGrid.innerHTML = data.models.map(m => `
-                <div class="cp-card" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between; border-left: 3px solid ${m.color || '#6366f1'};">
+                <div class="cp-card" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between">
                     <div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.08); color: ${m.color || '#6366f1'}; border: 1px solid rgba(255,255,255,0.1);">${m.badge}</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary); font-family: 'JetBrains Mono';">${m.size}</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px">
+                            <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--cizgi)">${m.badge}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); font-family: 'JetBrains Mono'">${m.size}</span>
                         </div>
-                        <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
-                            <i class="${m.icon}" style="color: ${m.color};"></i> ${m.display_name}
+                        <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px">
+                            <i class="${m.icon}"></i> ${m.display_name}
                         </h4>
-                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0; line-height: 1.4;">${m.desc}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0; line-height: 1.4">${m.desc}</p>
                     </div>
-                    <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <button class="btn btn-primary" onclick="pullStoreModel('${m.name}')" style="flex: 1; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; background: linear-gradient(135deg, ${m.color}, #4f46e5); border: none;">
+                    <div style="display: flex; gap: 8px; margin-top: 8px">
+                        <button class="btn btn-primary" onclick="pullStoreModel('${m.name}')" style="flex: 1; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; border: none">
                             <i class="fa-solid fa-download"></i> İndir / Yükle
                         </button>
-                        <button class="btn btn-secondary" onclick="deleteStoreModel('${m.name}')" style="border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; color: #ef4444;" title="Sil">
+                        <button class="btn btn-secondary" onclick="deleteStoreModel('${m.name}')" style="border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; color: var(--accent-red)" title="Sil">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -1110,18 +1114,18 @@ async function loadStoreCatalog() {
         const pluginsGrid = document.getElementById('store-plugins-grid');
         if (pluginsGrid && data.plugins) {
             pluginsGrid.innerHTML = data.plugins.map(p => `
-                <div class="cp-card" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div class="cp-card" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between">
                     <div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">${p.badge}</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">${p.category}</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px">
+                            <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; color: var(--accent-green); border: 1px solid var(--cizgi)">${p.badge}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary)">${p.category}</span>
                         </div>
-                        <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
-                            <i class="${p.icon}" style="color: #10b981;"></i> ${p.name}
+                        <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px">
+                            <i class="${p.icon}"></i> ${p.name}
                         </h4>
-                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0;">${p.description}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0">${p.description}</p>
                     </div>
-                    <button class="btn btn-secondary" style="border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: #10b981; border-color: rgba(16, 185, 129, 0.3);">
+                    <button class="btn btn-secondary" style="border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: var(--accent-green); border-color: var(--cizgi)">
                         <i class="fa-solid fa-check"></i> Aktif Entegre
                     </button>
                 </div>
@@ -1132,18 +1136,18 @@ async function loadStoreCatalog() {
         const skillsGrid = document.getElementById('store-skills-grid');
         if (skillsGrid && data.skills) {
             skillsGrid.innerHTML = data.skills.map(s => `
-                <div class="cp-card" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div class="cp-card" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between">
                     <div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                            <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 12px; background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3);">${s.badge}</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);">${s.author}</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px">
+                            <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; color: var(--vurgu); border: 1px solid var(--cizgi)">${s.badge}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary)">${s.author}</span>
                         </div>
-                        <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
-                            <i class="${s.icon}" style="color: #a855f7;"></i> ${s.name}
+                        <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px">
+                            <i class="${s.icon}"></i> ${s.name}
                         </h4>
-                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0;">${s.description}</p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 12px 0">${s.description}</p>
                     </div>
-                    <button class="btn btn-secondary" style="border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
+                    <button class="btn btn-secondary" style="border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 700; color: var(--vurgu); border-color: var(--cizgi)">
                         <i class="fa-solid fa-check-double"></i> Yüklü Beceri
                     </button>
                 </div>
@@ -1208,20 +1212,20 @@ async function loadApiKeys() {
         const data = await res.json();
         
         if (!data.keys || data.keys.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px;">Henüz aktif bir API anahtarı bulunmuyor.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 20px">Henüz aktif bir API anahtarı bulunmuyor.</td></tr>`;
             return;
         }
 
         tableBody.innerHTML = data.keys.map(k => `
             <tr>
-                <td style="font-weight: 700; color: #fff;">${k.name}</td>
-                <td><code style="background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 6px; color: #38bdf8; font-family: 'JetBrains Mono';">${k.key_preview}</code></td>
-                <td><span style="font-size: 0.75rem; background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 8px; border-radius: 10px; font-weight: 700;">${k.rate_limit.toUpperCase()}</span></td>
-                <td style="font-family: 'JetBrains Mono'; font-weight: 700; color: #f59e0b;">${k.requests_count} İstek</td>
-                <td style="font-size: 0.8rem; color: var(--text-secondary);">${k.created_at}</td>
-                <td style="font-size: 0.8rem; color: var(--text-secondary);">${k.last_used}</td>
+                <td style="font-weight: 700">${k.name}</td>
+                <td><code style="padding: 3px 8px; border-radius: 6px; color: var(--vurgu); font-family: 'JetBrains Mono'">${k.key_preview}</code></td>
+                <td><span style="font-size: 0.75rem; color: var(--accent-green); padding: 2px 8px; border-radius: 10px; font-weight: 700">${k.rate_limit.toUpperCase()}</span></td>
+                <td style="font-family: 'JetBrains Mono'; font-weight: 700; color: var(--accent-amber)">${k.requests_count} İstek</td>
+                <td style="font-size: 0.8rem; color: var(--text-secondary)">${k.created_at}</td>
+                <td style="font-size: 0.8rem; color: var(--text-secondary)">${k.last_used}</td>
                 <td>
-                    <button class="btn btn-secondary" onclick="revokeApiKeyUI('${k.id}')" style="padding: 4px 8px; font-size: 0.75rem; color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                    <button class="btn btn-secondary" onclick="revokeApiKeyUI('${k.id}')" style="padding: 4px 8px; font-size: 0.75rem; color: var(--accent-red); border-color: var(--cizgi)">
                         <i class="fa-solid fa-trash"></i> İptal Et
                     </button>
                 </td>
@@ -1245,7 +1249,7 @@ async function generateApiKeyUI() {
         });
         const data = await res.json();
         if (data.key) {
-            prompt("✅ Yeni Sınırsız Nexus API Key Üretildi! Bu anahtarı kopyalayıp saklayın:", data.key);
+            prompt("Yeni Sınırsız Nexus API Key Üretildi! Bu anahtarı kopyalayıp saklayın:", data.key);
             loadApiKeys();
         } else {
             alert("Hata: " + (data.message || "Key üretilemedi."));

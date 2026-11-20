@@ -30,7 +30,7 @@
 ## [2026-09-14 20:16:35] - Sınırsız API Key Verme, OpenAI RESTful Gateway & Saf Tanıtım Portalı
 - **Sınırsız API Key Yönetimi (`/api/apikeys`)**:
   - `nx-live-...` formatında sınırsız API anahtarı üretme, listeleme, doğrulama ve iptal etme endpoints (`/api/apikeys/generate`, `/api/apikeys`, `/api/apikeys/key_id`).
-  - Varsayılan Master Key: `nx-live-unlimited-nexus-master-key`.
+  - (Kaldırıldı) Sabit ana anahtar yok; her kurulum kendi anahtarını Kontrol Paneli'nden üretir.
 - **OpenAI-Uyumlu Gateway (`/v1/chat/completions` & `/v1/models`)**:
   - Standart OpenAI Python kütüphanesi, Node.js SDK, cURL ve LangChain ile %100 uyumlu RESTful endpoint.
   - SSE Streaming (`stream: true`) ve Non-streaming JSON yanıt tipi desteği.
@@ -216,7 +216,7 @@ Bu dokümantasyon, **Nexus AI Studio & Cluster Control Panel** projesinin sıfı
       * Sohbet alanında üretilen tüm web kod bloklarının sağ üst köşesine ve Canlı Sandbox araç çubuğuna parlak zümrüt yeşili **"🌍 Dünyaya Aç / Paylaş"** butonu eklendi.
       * Proje yayınlandığında açılan şık karanlık cam modal penceresi:
         * Dünya Geneli Canlı URL (`https://*.trycloudflare.com/share/{id}`) + Tek tıkla kopyalama.
-        * Yerel Ağ (LAN) Bağlantısı (`http://192.168.0.188:3050/share/{id}`) + Tek tıkla kopyalama.
+        * Yerel Ağ (LAN) Bağlantısı (`http://<yerel-ip>:3050/share/{id}`) + Tek tıkla kopyalama.
         * Canlı QR Kod Oluşturucu (Mobil telefonla anında kameradan tarayıp açabilme).
         * Yeni sekmede anında açma butonu.
     * **Kontrol Paneli Entegrasyonu (`frontend/src/admin.html` & `frontend/src/js/admin.js`):**
@@ -273,7 +273,7 @@ Bu dokümantasyon, **Nexus AI Studio & Cluster Control Panel** projesinin sıfı
     * **Backend `/api/deploy/studio-tunnel/toggle` & `/start` & `/stop`:** Tünel durumunu anlık kontrol edip gerekirse tünel sürecini güvenli şekilde sonlandırır veya yeniden başlatır.
     * **Frontend Dinamik Arayüz:**
       * **🟢 AÇIK Durumu:** Zümrüt yeşili tünel anahtarı, anlık genel HTTPS linkleri, kopyalama butonları ve taranabilir canlı QR kod.
-      * **🔴 KAPALI Durumu:** Kırmızı kilit rozeti ("Dış Erişim Kapalı - Yalnızca Yerel LAN"), grileştirilmiş QR alanı ve güvenli yerel ağ modu (`http://192.168.0.188:3050`).
+      * **🔴 KAPALI Durumu:** Kırmızı kilit rozeti ("Dış Erişim Kapalı - Yalnızca Yerel LAN"), grileştirilmiş QR alanı ve güvenli yerel ağ modu (`http://<yerel-ip>:3050`).
     * **Hızlı Aksiyon Butonu:** "Dış Erişimi Kapat" ve "Dış Erişimi Aç" aksiyon butonu eklendi.
 
 ---
@@ -283,7 +283,7 @@ Bu dokümantasyon, **Nexus AI Studio & Cluster Control Panel** projesinin sıfı
 #### 🕒 17:36:30 — [Commit: `582e91a`] • 🔄 Merkezi Sunucu Tabanlı API Anahtarı & Sohbet Geçmişi Senkronizasyonu
 * **Modül:** `Server-Side Centralized State, Key Fallback & Chat Sync`
 * **Sorun Analizi:**
-  * Tarayıcıların güvenlik mimarisi (Same-Origin Policy), `http://192.168.0.188:3050` (Yerel LAN) ile `https://*.trycloudflare.com` (Dış Tünel) adreslerinin `localStorage` alanlarını birbirinden tamamen izole eder.
+  * Tarayıcıların güvenlik mimarisi (Same-Origin Policy), `http://<yerel-ip>:3050` (Yerel LAN) ile `https://*.trycloudflare.com` (Dış Tünel) adreslerinin `localStorage` alanlarını birbirinden tamamen izole eder.
   * Bu sebeple kullanıcı yerel ağda girdiği API anahtarlarını veya geçmiş sohbetlerini dış tünel bağlantısı (veya cep telefonu) üzerinden açtığında göremiyor, modeller kilitli kalıyor ve her cihazda anahtarları yeniden girmek zorunda kalıyordu.
 * **Çözüm & Geliştirilen Özellikler:**
   1. **Kalıcı Sunucu Ayarları ve API Key Yönetimi (`/api/settings`):**
@@ -329,7 +329,7 @@ Bu dokümantasyon, **Nexus AI Studio & Cluster Control Panel** projesinin sıfı
        * **RAM & Bellek Mimarisi:** Toplam fiziksel RAM, kullanılan, boş, önbellek (cached/buffers) ve swap bellek kullanım dökümü.
        * **Anakart, Model & BIOS (DMI):** Üretici marka (`MSI`), anakart modeli (`PRO H610M-B DDR4`), BIOS sağlayıcısı & sürümü (`American Megatrends 1.F0`).
        * **Depolama (SSD/NVMe):** Kök disk boyutu, kullanılan ve boş depolama kapasitesi.
-       * **İşletim Sistemi & Çekirdek:** Dağıtım tam adı (`Ubuntu 24.04 LTS`), Linux çekirdek sürümü (`Linux 6.8.0-generic`), sunucu adı (`topcubuntu`) ve Python sürümü.
+       * **İşletim Sistemi & Çekirdek:** Dağıtım tam adı (`Ubuntu 24.04 LTS`), Linux çekirdek sürümü (`Linux 6.8.0-generic`), sunucu adı ve Python sürümü.
   2. **Kontrol Paneli Arayüzü (`frontend/src/admin.html` & `frontend/src/js/admin.js`):**
      * Sol menüye **"🖥️ Donanım & Sistem Detayları"** sekmesi eklendi.
      * 6 kartlı lüks cam (glassmorphism) panel ve tek tıkla "Donanımı Yeniden Tara" butonu entegre edildi.
@@ -407,10 +407,7 @@ Bu dokümantasyon, **Nexus AI Studio & Cluster Control Panel** projesinin sıfı
 #### 🕒 19:38:20 — [Commit: `c7049db`] • 🌐 GPU Offloading & Çoklu Sunucu Entegrasyonu (Bölüm 2 Canlıya Alındı)
 * **Modül:** `Multi-Server GPU Offloading & Automated Backup & Safety Audit Engine`
 * **Yapılan İşlemler:**
-  1. **Ev Sunucusu GPU Offloading (Topcubuntu RTX 4060 ➔ VDS 1 `ai.oedge.xyz` / `nexus.oedge.xyz`):**
-     * `~/.config/systemd/user/ollama-gpu.service` ile GPU hızlandırmalı Ollama motoru `0.0.0.0:11435` üzerinde yapılandırıldı.
-     * `~/.config/systemd/user/nexus-gpu-bridge.service` ile VDS 1'e (`213.142.159.20`) kesintisiz ters SSH tüneli kuruldu (`loginctl enable-linger kagan` ile 7/24 kalıcılık sağlandı).
-     * VDS 1 Nginx konfigürasyonuna (`ai_oedge.conf` & `nexus.conf`) öncelikli (`^~`) `/v1/` ve `/ollama/` blokları eklenerek tüm ağır LLM sorguları VDS 1 CPU'su yerine evdeki RTX 4060 GPU'ya yönlendirildi (Canlı testte 4.6 GB VRAM ve 80+ tok/s hız teyit edildi).
+  1. **Uzak GPU desteği:** Ollama başka bir makinede (ör. GPU'lu bir bilgisayarda) çalışıyorsa, Ayarlar'daki Ollama adresi o makineyi gösterecek şekilde değiştirilebilir.
   2. **VDS 2 Otomatik Mailcow & MySQL Veritabanı Yedeklemesi:**
      * `/opt/origin-edge-automation/mailcow_backup.sh` betiği yazıldı; Mailcow MariaDB ve Alfabemail MySQL veritabanları sıkıştırılarak (`.sql.gz`) günlük yedeklenir ve 7 günden eski arşivler otomatik temizlenir (`crontab: 0 3 * * *`).
   3. **VDS 2 KAMA AI 4.0 Çocuk Koruma & Güvenlik Denetim Motoru:**

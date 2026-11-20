@@ -28,7 +28,7 @@
 * 🏪 **Model, Skill & Plugin Store:** Integrated catalog to discover, 1-click download, and manage HuggingFace GGUF models, agent skills, and community plugins.
 * 🔑 **Unlimited API Key Generator & OpenAI-Compatible Gateway (`/v1/chat/completions`):**
   * Issue unlimited API keys (`nx-live-...`) via 1-click REST API or Control Panel.
-  * Connect any standard OpenAI SDK (Python `openai`, Node.js `openai`, LangChain, cURL, AutoGen) to Nexus via `https://nexus.oedge.xyz/v1` or `http://localhost:8000/v1`.
+  * Connect any standard OpenAI SDK (Python `openai`, Node.js `openai`, LangChain, cURL, AutoGen) to Nexus via `http://localhost:3050/v1` (send your key as `Authorization: Bearer nx-live-...`).
   * Support for both SSE Streaming (`stream: true`) and JSON responses across all models (Ollama local GPU, Gemini, OpenAI, Groq, Claude).
 * 🌍 **1-Click Live Public Web Publishing & Remote Control Suite:**
   * Instantly publish AI-generated HTML/JS/CSS web applications to the public internet using zero-config **Cloudflare Quick Tunnels** (`https://*.trycloudflare.com/share/{id}`).
@@ -46,7 +46,7 @@
   
 * 🔑 **Unlimited API Key Generator & OpenAI-Compatible Gateway (`/v1/chat/completions`):**
   * Issue unlimited API keys (`nx-live-...`) via 1-click REST API.
-  * Connect any standard OpenAI SDK (Python `openai`, Node.js `openai`, LangChain, cURL, AutoGen) to Nexus via `https://nexus.oedge.xyz/v1`.
+  * Connect any standard OpenAI SDK (Python `openai`, Node.js `openai`, LangChain, cURL, AutoGen) to Nexus via `http://localhost:3050/v1`.
   * Support for both SSE Streaming (`stream: true`) and JSON responses across all models (Ollama local GPU, Gemini, OpenAI, Groq, Claude).
 * 🔑 **Provider Speed Radar:** Real-time ping & health benchmarks for Ollama, Gemini 3.6, OpenAI, Groq.
 * 🔌 **Universal Multi-Provider Support:**
